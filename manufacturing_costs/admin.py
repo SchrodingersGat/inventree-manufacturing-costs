@@ -2,15 +2,22 @@
 
 from django.contrib import admin
 
-from .models import ExampleModel
+from .models import ManufactuingRate, ManufacturingCost
 
 
-@admin.register(ExampleModel)
-class ExampleModelAdmin(admin.ModelAdmin):
-    """Admin interface for the ExampleModel."""
+@admin.register(ManufactuingRate)
+class ManufacturingRateAdmin(admin.ModelAdmin):
+    """Admin interface for the ManufacturingRate."""
+
+    list_display = ("name", "description", "price")
+
+
+@admin.register(ManufacturingCost)
+class ManufacturingCostAdmin(admin.ModelAdmin):
+    """Admin interface for the ManufacturingCost model."""
 
     list_display = (
-        "user",
-        "counter",
+        "part",
+        "rate",
+        "quantity",
     )
-    list_filter = ("user",)
