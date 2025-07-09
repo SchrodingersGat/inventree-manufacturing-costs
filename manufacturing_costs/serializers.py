@@ -5,39 +5,55 @@ In practice, you would define your custom serializers here.
 Ref: https://www.django-rest-framework.org/api-guide/serializers/
 """
 
-from rest_framework import serializers
+from InvenTree.serializers import (
+    InvenTreeCurrencySerializer,
+    InvenTreeModelSerializer,
+    InvenTreeMoneySerializer,
+)
+from part.serializers import PartBriefSerializer
+
+from .models import ManufactuingRate, ManufacturingCost
 
 
-class ExampleSerializer(serializers.Serializer):
-    """Example serializer for the ManufacturingCosts plugin.
-
-    This simply demonstrates how to create a serializer,
-    with a few example fields of different types.
-    """
+class ManufacturingRateSerializer(InvenTreeModelSerializer):
+    """Serializer for the MachiningRate model."""
 
     class Meta:
-        """Meta options for this serializer."""
+        """Meta options for the serializer."""
 
+        model = ManufactuingRate
         fields = [
-            "random_text",
-            "part_count",
-            "today",
+            "pk",
+            "name",
+            "description",
+            "units",
+            "price",
+            "price_currency",
         ]
 
-    random_text = serializers.CharField(
-        max_length=100,
-        required=True,
-        label="Random Text",
-        help_text="A text field containing randomly generated data.",
-    )
+    price = InvenTreeMoneySerializer()
+    price_currency = InvenTreeCurrencySerializer()
 
-    part_count = serializers.IntegerField(
-        label="Number of Parts",
-        help_text="Total number of parts in the InvenTree database.",
-    )
 
-    today = serializers.DateField(
-        required=False,
-        label="Today",
-        help_text="The current date.",
-    )
+class ManufacturingCostSerializer(InvenTreeModelSerializer):
+    """Serializer for the ManufacturingCost model."""
+
+    class Meta:
+        """Meta options for the serializer."""
+
+        model = ManufacturingCost
+        fields = [
+            "pk",
+            "part",
+            "part_detail",
+            "rate",
+            "quantity",
+            "unit_cost",
+            "unit_cost_currency",
+            "notes",
+            "amortization",
+        ]
+
+    unit_cost = InvenTreeMoneySerializer()
+    unit_cost_currency = InvenTreeCurrencySerializer()
+    part_detail = PartBriefSerializer(source="part", read_only=True, many=False)

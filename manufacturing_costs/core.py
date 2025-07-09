@@ -40,20 +40,11 @@ class ManufacturingCosts(
         }
     }
 
-    # Custom URL endpoints (from UrlsMixin)
-    # Ref: https://docs.inventree.org/en/latest/plugins/mixins/urls/
     def setup_urls(self):
         """Configure custom URL endpoints for this plugin."""
-        from django.urls import path
-        from .views import ExampleView
+        from .views import construct_urls
 
-        return [
-            # Provide path to a simple custom view - replace this with your own views
-            path("example/", ExampleView.as_view(), name="example-view"),
-        ]
-
-    # User interface elements (from UserInterfaceMixin)
-    # Ref: https://docs.inventree.org/en/latest/plugins/mixins/ui/
+        return construct_urls()
 
     def get_part_panels(self, part_id: int):
         """Return the custom part panel component for this plugin."""
