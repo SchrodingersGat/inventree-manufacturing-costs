@@ -1,10 +1,4 @@
-"""Custom model definitions for the ManufacturingCosts plugin.
-
-This file is where you can define any custom database models.
-
-- Any models defined here will require database migrations to be created.
-- Don't forget to register your models in the admin interface if needed!
-"""
+"""Custom model definitions for the ManufacturingCosts plugin."""
 
 from django.core.validators import MinValueValidator
 from django.db import models

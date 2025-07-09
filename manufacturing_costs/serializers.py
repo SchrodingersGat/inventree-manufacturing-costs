@@ -1,9 +1,4 @@
-"""API serializers for the ManufacturingCosts plugin.
-
-In practice, you would define your custom serializers here.
-
-Ref: https://www.django-rest-framework.org/api-guide/serializers/
-"""
+"""API serializers for the ManufacturingCosts plugin."""
 
 from InvenTree.serializers import (
     InvenTreeCurrencySerializer,
