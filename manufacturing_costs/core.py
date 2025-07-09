@@ -55,27 +55,61 @@ class ManufacturingCosts(
     # User interface elements (from UserInterfaceMixin)
     # Ref: https://docs.inventree.org/en/latest/plugins/mixins/ui/
 
+    def get_part_panels(self, part_id: int):
+        """Return the custom part panel component for this plugin."""
+
+        from part.models import Part
+
+        if not part_id:
+            return []
+
+        try:
+            instance = Part.objects.get(pk=part_id)
+        except (Part.DoesNotExist, ValueError):
+            return []
+
+        # TODO: Check if the user has permission to view the manufacturing data
+
+        if not instance.assembly:
+            # If the part is not an assembly, do not display the panel
+            return []
+
+        return [
+            {
+                "key": "manufacturing-costs",
+                "title": "Manufacturing Costs",
+                "description": "Part manufacturing costs",
+                "icon": "ti:clock-dollar:outline",
+                "source": self.plugin_static_file("PartPanel.js:renderPartPanel"),
+            }
+        ]
+
+    def get_admin_panels(self):
+        """Return the custom admin panel component for this plugin."""
+
+        return [
+            {
+                "key": "manufacturing-costs",
+                "title": "Manufacturing Costs",
+                "description": "Part manufacturing costs",
+                "icon": "ti:clock-dollar:outline",
+                "source": self.plugin_static_file("AdminPanel.js:renderAdminPanel"),
+            }
+        ]
+
     # Custom UI panels
     def get_ui_panels(self, request, context: dict, **kwargs):
         """Return a list of custom panels to be rendered in the InvenTree user interface."""
 
-        panels = []
+        target_model = context.get("target_model", None)
+        target_id = context.get("target_id", None)
 
-        # Only display this panel for the 'part' target
-        if context.get("target_model") == "part":
-            panels.append({
-                "key": "manufacturing-costs-panel",
-                "title": "Manufacturing Costs",
-                "description": "Custom panel description",
-                "icon": "ti:mood-smile:outline",
-                "source": self.plugin_static_file(
-                    "Panel.js:renderManufacturingCostsPanel"
-                ),
-                "context": {
-                    # Provide additional context data to the panel
-                    "settings": self.get_settings_dict(),
-                    "foo": "bar",
-                },
-            })
+        if target_model == "admincenter":
+            return self.get_admin_panels()
 
-        return panels
+        if target_model == "part":
+            target_id = context.get("target_id", None)
+            return self.get_part_panels(target_id)
+
+        # Nothing to do
+        return []

@@ -16,7 +16,7 @@ import { useCallback, useMemo, useState } from 'react';
  * Refer to the InvenTree documentation for the context interface
  * https://docs.inventree.org/en/latest/plugins/mixins/ui/#plugin-context
  */
-function ManufacturingCostsPanel({
+function ManufacturingCostsAdminPanel({
   context
 }: {
   context: InvenTreePluginContext;
@@ -141,7 +141,7 @@ function ManufacturingCostsPanel({
 }
 
 // This is the function which is called by InvenTree to render the actual panel component
-export function renderManufacturingCostsPanel(context: InvenTreePluginContext) {
+export function renderAdminPanel(context: InvenTreePluginContext) {
   checkPluginVersion(context);
-  return <ManufacturingCostsPanel context={context} />;
+  return <ManufacturingCostsAdminPanel context={context} />;
 }
