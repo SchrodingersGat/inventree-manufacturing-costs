@@ -24,12 +24,9 @@ class ManufacturingCosts(
     WEBSITE = "https://github.com/SchrodingersGat/inventree-manufacturing-costs"
     LICENSE = "MIT"
 
-    # Optionally specify supported InvenTree versions
-    # MIN_VERSION = '0.18.0'
-    # MAX_VERSION = '2.0.0'
+    MIN_VERSION = "0.18.0"
 
     # Plugin settings (from SettingsMixin)
-    # Ref: https://docs.inventree.org/en/latest/plugins/mixins/settings/
     SETTINGS = {
         # Define your plugin settings here...
         "CUSTOM_VALUE": {

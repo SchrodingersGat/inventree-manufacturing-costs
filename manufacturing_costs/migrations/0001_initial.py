@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="ManufactuingRate",
+            name="ManufacturingRate",
             fields=[
                 (
                     "id",
@@ -155,7 +155,7 @@ class Migration(migrations.Migration):
                         null=True,
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="manufacturing_costs",
-                        to="manufacturing_costs.manufactuingrate",
+                        to="manufacturing_costs.manufacturingrate",
                         verbose_name="Manufacturing Rate",
                     ),
                 ),

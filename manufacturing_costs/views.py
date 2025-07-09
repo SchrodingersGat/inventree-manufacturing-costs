@@ -9,7 +9,7 @@ from rest_framework import permissions
 
 from InvenTree.mixins import ListCreateAPI, RetrieveUpdateDestroyAPI
 
-from .models import ManufactuingRate, ManufacturingCost
+from .models import ManufacturingRate, ManufacturingCost
 from .serializers import ManufacturingRateSerializer, ManufacturingCostSerializer
 
 
@@ -19,7 +19,7 @@ class ManufacturingRateMixin:
     # TODO: Fix up the permissions and authentication for this mixin
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ManufacturingRateSerializer
-    queryset = ManufactuingRate.objects.all()
+    queryset = ManufacturingRate.objects.all()
 
 
 class ManufacturingRateList(ManufacturingRateMixin, ListCreateAPI):
