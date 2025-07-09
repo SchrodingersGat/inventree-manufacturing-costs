@@ -1,13 +1,10 @@
-"""API views for the ManufacturingCosts plugin.
+"""API views for the ManufacturingCosts plugin."""
 
-In practice, you would define your custom views here.
-
-Ref: https://www.django-rest-framework.org/api-guide/views/
-"""
-
-from rest_framework import permissions
+from django_filters import rest_framework as rest_filters
+from rest_framework import filters, permissions
 
 from InvenTree.mixins import ListCreateAPI, RetrieveUpdateDestroyAPI
+import part.models
 
 from .models import ManufacturingRate, ManufacturingCost
 from .serializers import ManufacturingRateSerializer, ManufacturingCostSerializer
@@ -25,7 +22,18 @@ class ManufacturingRateMixin:
 class ManufacturingRateList(ManufacturingRateMixin, ListCreateAPI):
     """API endpoint for listing and creating ManufacturingRate instances."""
 
-    ...
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
+
+    ordering_fields = [
+        "pk",
+        "name",
+        "units",
+    ]
+
+    search_fields = [
+        "name",
+        "description",
+    ]
 
 
 class ManufacturingRateDetail(ManufacturingRateMixin, RetrieveUpdateDestroyAPI):
@@ -49,10 +57,44 @@ class ManufacturingCostMixin:
         return queryset
 
 
+class ManufacturingCostFilter(rest_filters.FilterSet):
+    """Filter class for ManufacturingCost API endpoints."""
+
+    class Meta:
+        model = ManufacturingCost
+        fields = []
+
+    part = rest_filters.ModelChoiceFilter(
+        queryset=part.models.Part.objects.all(), label="Part", method="filter_part"
+    )
+
+    def filter_part(self, queryset, name, part):
+        """Filter ManufacturingCost instances by part."""
+
+        parts = part.get_descendants(include_self=True)
+        return queryset.filter(part__in=parts)
+
+
 class ManufacturingCostList(ManufacturingCostMixin, ListCreateAPI):
     """API endpoint for listing and creating ManufacturingCost instances."""
 
-    ...
+    filterset_class = ManufacturingCostFilter
+
+    filter_backends = [
+        rest_filters.DjangoFilterBackend,
+        filters.OrderingFilter,
+        filters.SearchFilter,
+    ]
+
+    ordering_fields = ["pk", "part", "rate", "quantity"]
+
+    search_fields = [
+        "part__name",
+        "part__IPN",
+        "rate__name",
+        "rate__description",
+        "notes",
+    ]
 
 
 class ManufacturingCostDetail(ManufacturingCostMixin, RetrieveUpdateDestroyAPI):
