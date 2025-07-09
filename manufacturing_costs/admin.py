@@ -2,10 +2,10 @@
 
 from django.contrib import admin
 
-from .models import ManufactuingRate, ManufacturingCost
+from .models import ManufacturingRate, ManufacturingCost
 
 
-@admin.register(ManufactuingRate)
+@admin.register(ManufacturingRate)
 class ManufacturingRateAdmin(admin.ModelAdmin):
     """Admin interface for the ManufacturingRate."""
 

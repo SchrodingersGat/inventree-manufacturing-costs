@@ -12,7 +12,7 @@ from InvenTree.serializers import (
 )
 from part.serializers import PartBriefSerializer
 
-from .models import ManufactuingRate, ManufacturingCost
+from .models import ManufacturingRate, ManufacturingCost
 
 
 class ManufacturingRateSerializer(InvenTreeModelSerializer):
@@ -21,7 +21,7 @@ class ManufacturingRateSerializer(InvenTreeModelSerializer):
     class Meta:
         """Meta options for the serializer."""
 
-        model = ManufactuingRate
+        model = ManufacturingRate
         fields = [
             "pk",
             "name",

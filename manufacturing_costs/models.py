@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from InvenTree.fields import InvenTreeModelMoneyField
 
 
-class ManufactuingRate(models.Model):
+class ManufacturingRate(models.Model):
     """Model to store manufacturing 'rates' for different processes."""
 
     class Meta:
@@ -73,7 +73,7 @@ class ManufacturingCost(models.Model):
     )
 
     rate = models.ForeignKey(
-        ManufactuingRate,
+        ManufacturingRate,
         on_delete=models.CASCADE,
         null=True,
         related_name="manufacturing_costs",
