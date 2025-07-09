@@ -29,9 +29,8 @@ export default defineConfig({
     rollupOptions: {
       preserveEntrySignatures: "exports-only",
       input: [
-        './src/Panel.tsx',
-        
-        
+        './src/AdminPanel.tsx',
+        './src/PartPanel.tsx',
       ],
       output: {
         dir: '../manufacturing_costs/static',
