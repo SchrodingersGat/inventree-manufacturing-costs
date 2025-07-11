@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { viteExternalsPlugin } from 'vite-plugin-externals'
 
 /**
  * Vite config to run the frontend plugin in development mode.
@@ -9,11 +9,33 @@ import react from '@vitejs/plugin-react'
  */
 export default defineConfig({
   plugins: [
-    react(),
+    viteExternalsPlugin({
+      react: 'React',
+      'react-dom': 'ReactDOM',
+      'ReactDom': 'ReactDOM',
+      '@mantine/core': 'MantineCore',
+      "@mantine/notifications": 'MantineNotifications',
+    }),
   ],
   build: {
-    cssCodeSplit: false,
-    manifest: true,
-    sourcemap: true,
+    rollupOptions: {
+      output: {
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
+          '@mantine/core': 'MantineCore',
+          "@mantine/notifications": 'MantineNotifications',
+        },
+      },
+      external: ['react', 'react-dom', '@mantine/core', '@mantine/notifications'],
+    }
+  },
+  server: {
+    port: 5174,  // Default port for plugins
+    strictPort: true,
+    cors: {
+      origin: '*',  // Allow all origins for development
+    }
   },
 })
+
