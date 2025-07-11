@@ -42,6 +42,7 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
             "part",
             "part_detail",
             "rate",
+            "rate_detail",
             "quantity",
             "unit_cost",
             "unit_cost_currency",
@@ -52,3 +53,4 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
     unit_cost = InvenTreeMoneySerializer()
     unit_cost_currency = InvenTreeCurrencySerializer()
     part_detail = PartBriefSerializer(source="part", read_only=True, many=False)
+    rate_detail = ManufacturingRateSerializer(source="rate", read_only=True, many=False)
