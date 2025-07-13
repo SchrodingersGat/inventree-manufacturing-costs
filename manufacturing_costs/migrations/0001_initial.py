@@ -11,9 +11,7 @@ import djmoney.models.validators
 class Migration(migrations.Migration):
     initial = True
 
-    dependencies = [
-        ("part", "0135_alter_part_link"),
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
