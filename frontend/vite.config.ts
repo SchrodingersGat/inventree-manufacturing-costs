@@ -16,13 +16,15 @@ export default defineConfig({
       'react-dom': 'ReactDOM',
       '@mantine/core': 'MantineCore',
       "@mantine/notifications": 'MantineNotifications',
+      "@lingui/core": 'LinguiCore',
+      "@lingui/core/macro": 'LinguiMacro',
     }),
   ],
   esbuild: {
     jsx: 'preserve',
   },
   build: {
-    // minify: false,
+    minify: false,
     cssCodeSplit: false,
     manifest: true,
     sourcemap: true,
@@ -33,7 +35,8 @@ export default defineConfig({
         './src/PartPanel.tsx',
       ],
       output: {
-        dir: '../manufacturing_costs/static',
+        // dir: '../manufacturing_costs/static',
+        dir: 'dist',
         entryFileNames: '[name].js',
         assetFileNames: 'assets/[name].[ext]',
         globals: {
@@ -41,12 +44,28 @@ export default defineConfig({
           'react-dom': 'ReactDOM',
           '@mantine/core': 'MantineCore',
           "@mantine/notifications": 'MantineNotifications',
+          "@lingui/core": 'LinguiCore',
+          "@lingui/core/macro": 'LinguiMacro',
         },
       },
-      external: ['react', 'react-dom', '@mantine/core', '@mantine/notifications'],
+      external: [
+        'react',
+        'react-dom',
+        '@mantine/core',
+        '@mantine/notifications',
+        "@lingui/core",
+        "@lingui/core/macro"
+      ],
     }
   },
   optimizeDeps: {
-    exclude: ['react', 'react-dom', '@mantine/core', '@mantine/notifications'],
+    exclude: [
+      'react',
+      'react-dom',
+      '@mantine/core',
+      '@mantine/notifications',
+      "@lingui/core",
+      "@lingui/core/macro",
+    ],
   },
 })
