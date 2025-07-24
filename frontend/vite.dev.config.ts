@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, splitVendorChunkPlugin } from 'vite'
 import { viteExternalsPlugin } from 'vite-plugin-externals'
 
 /**
@@ -15,9 +15,14 @@ export default defineConfig({
       'ReactDom': 'ReactDOM',
       '@mantine/core': 'MantineCore',
       "@mantine/notifications": 'MantineNotifications',
+      "@lingui/core": 'LinguiCore',
+      "@lingui/react": 'LinguiReact',
     }),
+    splitVendorChunkPlugin(),
   ],
   build: {
+    target: 'esnext',
+    outDir: 'dist',
     rollupOptions: {
       output: {
         globals: {
@@ -25,9 +30,18 @@ export default defineConfig({
           'react-dom': 'ReactDOM',
           '@mantine/core': 'MantineCore',
           "@mantine/notifications": 'MantineNotifications',
+          "@lingui/core": 'LinguiCore',
+          "@lingui/react": 'LinguiReact',
         },
       },
-      external: ['react', 'react-dom', '@mantine/core', '@mantine/notifications'],
+      external: [
+        'react',
+        'react-dom',
+        "@lingui/core",
+        "@lingui/react",
+        '@mantine/core',
+        '@mantine/notifications',
+      ],
     }
   },
   server: {

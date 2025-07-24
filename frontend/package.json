@@ -7,11 +7,12 @@
     "lint": "npx @biomejs/biome check ./src",
     "lint:fix": "npx @biomejs/biome check ./src --fix",
     "build": "tsc -b && vite build --emptyOutDir",
-    "dev": "vite --config vite.dev.config.ts --host",
-    "preview": "vite preview --config vite.dev.config.ts --host"
+    "build-dev": "tsc -b && vite build --config vite.dev.config.ts --emptyOutDir",
+    "serve": "vite --config vite.dev.config.ts serve dist --host",
+    "dev": "vite --config vite.dev.config.ts --host"
   },
   "dependencies": {
-    "@inventreedb/ui": "^0.2.3",
+    "@inventreedb/ui": "^0.3.0",
     "@mantine/charts": "^7.16.0",
     "@mantine/dates": "^7.16.0",
     "@mantine/hooks": "^7.16.0",
