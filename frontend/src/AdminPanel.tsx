@@ -1,82 +1,38 @@
 // Import for type checking
 import {
+  ActionButton,
   apiUrl,
-  checkPluginVersion,
   formatCurrencyValue,
-  type InvenTreePluginContext
+  type InvenTreePluginContext,
+  initPlugin,
+  RowActions,
+  RowDeleteAction,
+  RowDuplicateAction,
+  RowEditAction,
+  SearchInput
 } from '@inventreedb/ui';
+import { ActionIcon, Alert, Group, Stack, Text, Tooltip } from '@mantine/core';
 import {
-  ActionIcon,
-  Alert,
-  CloseButton,
-  Group,
-  Stack,
-  Text,
-  TextInput,
-  Tooltip
-} from '@mantine/core';
-import { useDebouncedValue } from '@mantine/hooks';
-import {
-  IconCopy,
-  IconEdit,
   IconExclamationCircle,
   IconInfoCircle,
   IconPlus,
-  IconRefresh,
-  IconSearch,
-  IconTrash
+  IconRefresh
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 
-// Search input component
-// TODO: Work out how to import this from @inventreedb/ui
-function SearchInput({
-  searchCallback
-}: Readonly<{
-  searchCallback: (searchTerm: string) => void;
-}>) {
-  const [value, setValue] = useState<string>('');
-  const [searchText] = useDebouncedValue(value, 500);
-
-  useEffect(() => {
-    searchCallback(searchText);
-  }, [searchText]);
-
-  return (
-    <TextInput
-      value={value}
-      aria-label='table-search-input'
-      leftSection={<IconSearch />}
-      placeholder={`Search`}
-      onChange={(event) => setValue(event.target.value)}
-      rightSection={
-        value.length > 0 ? (
-          <CloseButton
-            size='xs'
-            onClick={() => {
-              setValue('');
-              searchCallback('');
-            }}
-          />
-        ) : null
-      }
-    />
-  );
-}
+import { useCallback, useMemo, useState } from 'react';
 
 export function ManufacturingCostsAdminPanel({
   context
 }: {
   context: InvenTreePluginContext;
 }) {
-  const RATE_URL: string = '/plugin/manufacturing-costs/rate/';
-
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Fetch API data from the example API endpoint
-  // It will re-fetch when the partId changes
+  const RATE_URL: string = '/plugin/manufacturing-costs/rate/';
+
+  // Fetch manufacturing rates from the API
   const dataQuery = useQuery(
     {
       queryKey: ['manufacturing-rate', searchTerm],
@@ -87,7 +43,7 @@ export function ManufacturingCostsAdminPanel({
               search: searchTerm
             }
           })
-          .then((response) => response.data);
+          .then((response: any) => response.data);
       }
     },
     context.queryClient
@@ -155,33 +111,24 @@ export function ManufacturingCostsAdminPanel({
   // Render the actions available for a given row in the table
   const rowActions = useCallback((record: any) => {
     return [
-      {
-        title: 'Edit',
-        color: 'blue',
-        icon: <IconEdit />,
+      RowEditAction({
         onClick: () => {
           setSelectedRecord(record);
           editRateForm?.open();
         }
-      },
-      {
-        title: 'Duplicate',
-        color: 'green',
-        icon: <IconCopy />,
+      }),
+      RowDuplicateAction({
         onClick: () => {
           setSelectedRecord(record);
           duplicateRateForm?.open();
         }
-      },
-      {
-        title: 'Delete',
-        color: 'red',
-        icon: <IconTrash />,
+      }),
+      RowDeleteAction({
         onClick: () => {
           setSelectedRecord(record);
           deleteRateForm?.open();
         }
-      }
+      })
     ];
   }, []);
 
@@ -216,13 +163,9 @@ export function ManufacturingCostsAdminPanel({
         width: 50,
         resizable: false,
         sortable: false,
-        render: (record: any, index: number) => {
-          return '...';
-          // <RowActions
-          //   actions={rowActions(record)}
-          //   index={index}
-          // />
-        }
+        render: (record: any, index: number) => (
+          <RowActions actions={rowActions(record)} index={index} />
+        )
       }
     ];
   }, []);
@@ -255,17 +198,14 @@ export function ManufacturingCostsAdminPanel({
         )}
         <Group justify='space-between'>
           <Group gap='xs'>
-            <Tooltip label='Add new rate'>
-              <ActionIcon
-                color='green'
-                variant='transparent'
-                onClick={() => {
-                  createRateForm?.open();
-                }}
-              >
-                <IconPlus />
-              </ActionIcon>
-            </Tooltip>
+            <ActionButton
+              tooltip='Add new rate'
+              icon={<IconPlus />}
+              color='green'
+              onClick={() => {
+                createRateForm?.open();
+              }}
+            />
           </Group>
           <Group gap='xs'>
             <SearchInput
@@ -302,10 +242,7 @@ export function ManufacturingCostsAdminPanel({
 
 // This is the function which is called by InvenTree to render the actual panel component
 export function renderAdminPanel(context: InvenTreePluginContext) {
-  checkPluginVersion(context);
-
-  // Activate the i18n context for the current locale
-  (context as any).i18n.activate(context.locale);
+  initPlugin(context);
 
   return <ManufacturingCostsAdminPanel context={context} />;
 }
