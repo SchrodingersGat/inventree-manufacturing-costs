@@ -1,6 +1,6 @@
 // Import for type checking
 import {
-  ActionButton,
+  AddItemButton,
   apiUrl,
   formatCurrencyValue,
   type InvenTreePluginContext,
@@ -15,7 +15,6 @@ import { ActionIcon, Alert, Group, Stack, Text, Tooltip } from '@mantine/core';
 import {
   IconExclamationCircle,
   IconInfoCircle,
-  IconPlus,
   IconRefresh
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
@@ -198,10 +197,8 @@ export function ManufacturingCostsAdminPanel({
         )}
         <Group justify='space-between'>
           <Group gap='xs'>
-            <ActionButton
+            <AddItemButton
               tooltip='Add new rate'
-              icon={<IconPlus />}
-              color='green'
               onClick={() => {
                 createRateForm?.open();
               }}
