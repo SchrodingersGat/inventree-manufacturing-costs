@@ -124,28 +124,41 @@ function ManufacturingCostsPanel({
   });
 
   // Render the actions available for a given row in the table
-  const rowActions = useCallback((record: any) => {
-    return [
-      RowEditAction({
-        onClick: () => {
-          setSelectedRecord(record);
-          editCostForm?.open();
-        }
-      }),
-      RowDeleteAction({
-        onClick: () => {
-          setSelectedRecord(record);
-          deleteCostForm?.open();
-        }
-      })
-    ];
-  }, []);
+  const rowActions = useCallback(
+    (record: any) => {
+      const partPk = context.instance.pk;
+
+      return [
+        RowEditAction({
+          onClick: () => {
+            setSelectedRecord(record);
+            editCostForm?.open();
+          },
+          hidden: record.part != partPk
+        }),
+        RowDeleteAction({
+          onClick: () => {
+            setSelectedRecord(record);
+            deleteCostForm?.open();
+          },
+          hidden: record.part != partPk
+        })
+      ];
+    },
+    [context.instance]
+  );
 
   const tableColums: any[] = useMemo(() => {
     return [
       {
         accessor: 'part',
-        title: 'Part'
+        title: 'Part',
+        render: (record: any) => {
+          return context.renderInstance({
+            instance: record.part_detail,
+            model: ModelType.part
+          });
+        }
       },
       {
         accessor: 'rate',

@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from InvenTree.serializers import (
     InvenTreeCurrencySerializer,
+    InvenTreeDecimalField,
     InvenTreeModelSerializer,
     InvenTreeMoneySerializer,
 )
@@ -57,6 +58,8 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
         allow_null=True,
         required=False,
     )
+
+    quantity = InvenTreeDecimalField()
 
     unit_cost = InvenTreeMoneySerializer(allow_null=True)
     unit_cost_currency = InvenTreeCurrencySerializer()

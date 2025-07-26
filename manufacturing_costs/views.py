@@ -71,7 +71,7 @@ class ManufacturingCostFilter(rest_filters.FilterSet):
     def filter_part(self, queryset, name, part):
         """Filter ManufacturingCost instances by part."""
 
-        parts = part.get_descendants(include_self=True)
+        parts = part.get_ancestors(include_self=True)
         return queryset.filter(part__in=parts)
 
 
