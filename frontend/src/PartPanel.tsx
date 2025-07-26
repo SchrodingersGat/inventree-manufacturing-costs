@@ -161,6 +161,10 @@ function ManufacturingCostsPanel({
         }
       },
       {
+        accessor: 'part_detail.IPN',
+        title: 'IPN'
+      },
+      {
         accessor: 'rate',
         title: 'Rate',
         render: (record: any) => {
