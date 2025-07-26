@@ -70,6 +70,7 @@ class ManufacturingCost(models.Model):
         ManufacturingRate,
         on_delete=models.CASCADE,
         null=True,
+        blank=True,
         related_name="manufacturing_costs",
         verbose_name=_("Manufacturing Rate"),
         help_text=_("The manufacturing rate used for this cost"),
