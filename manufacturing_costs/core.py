@@ -78,8 +78,8 @@ class ManufacturingCosts(
         return [
             {
                 "key": "manufacturing-costs",
-                "title": "Manufacturing Costs",
-                "description": "Part manufacturing costs",
+                "title": "Manufacturing Rates",
+                "description": "Part manufacturing rates",
                 "icon": "ti:clock-dollar:outline",
                 "source": self.plugin_static_file("AdminPanel.js:renderAdminPanel"),
             }

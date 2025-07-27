@@ -1,7 +1,10 @@
 """API serializers for the ManufacturingCosts plugin."""
 
+from rest_framework import serializers
+
 from InvenTree.serializers import (
     InvenTreeCurrencySerializer,
+    InvenTreeDecimalField,
     InvenTreeModelSerializer,
     InvenTreeMoneySerializer,
 )
@@ -42,6 +45,7 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
             "part",
             "part_detail",
             "rate",
+            "rate_detail",
             "quantity",
             "unit_cost",
             "unit_cost_currency",
@@ -49,6 +53,15 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
             "amortization",
         ]
 
-    unit_cost = InvenTreeMoneySerializer()
+    rate = serializers.PrimaryKeyRelatedField(
+        queryset=ManufacturingRate.objects.all(),
+        allow_null=True,
+        required=False,
+    )
+
+    quantity = InvenTreeDecimalField()
+
+    unit_cost = InvenTreeMoneySerializer(allow_null=True)
     unit_cost_currency = InvenTreeCurrencySerializer()
     part_detail = PartBriefSerializer(source="part", read_only=True, many=False)
+    rate_detail = ManufacturingRateSerializer(source="rate", read_only=True, many=False)

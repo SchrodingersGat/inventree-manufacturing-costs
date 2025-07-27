@@ -1,140 +1,237 @@
 // Import for type checking
 import {
-  ApiEndpoints,
+  AddItemButton,
   apiUrl,
-  checkPluginVersion,
+  formatCurrencyValue,
   type InvenTreePluginContext,
-  ModelType
+  initPlugin,
+  RowActions,
+  RowDeleteAction,
+  RowDuplicateAction,
+  RowEditAction,
+  SearchInput
 } from '@inventreedb/ui';
-import { Alert, Button, Group, Stack, Text, Title } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { ActionIcon, Alert, Group, Stack, Text, Tooltip } from '@mantine/core';
+import {
+  IconExclamationCircle,
+  IconInfoCircle,
+  IconRefresh
+} from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
+import { DataTable } from 'mantine-datatable';
+
 import { useCallback, useMemo, useState } from 'react';
 
-/**
- * Render a custom panel with the provided context.
- * Refer to the InvenTree documentation for the context interface
- * https://docs.inventree.org/en/latest/plugins/mixins/ui/#plugin-context
- */
-function ManufacturingCostsAdminPanel({
+export function ManufacturingCostsAdminPanel({
   context
 }: {
   context: InvenTreePluginContext;
 }) {
-  const partId = useMemo(() => {
-    return context.model == ModelType.part ? context.id || null : null;
-  }, [context.model, context.id]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Hello world - counter example
-  const [counter, setCounter] = useState<number>(0);
+  const RATE_URL: string = '/plugin/manufacturing-costs/rate/';
 
-  // Extract context information
-  const instance: string = useMemo(() => {
-    const data = context?.instance ?? {};
-    return JSON.stringify(data, null, 2);
-  }, [context.instance]);
-
-  // Fetch API data from the example API endpoint
-  // It will re-fetch when the partId changes
-  const apiQuery = useQuery(
+  // Fetch manufacturing rates from the API
+  const dataQuery = useQuery(
     {
-      queryKey: ['apiData', partId],
+      queryKey: ['manufacturing-rate', searchTerm],
       queryFn: async () => {
-        const url = `/plugin/manufacturing-costs/example/`;
-
-        return context.api
-          .get(url)
-          .then((response) => response.data)
-          .catch(() => {});
+        return context?.api
+          ?.get(RATE_URL, {
+            params: {
+              search: searchTerm
+            }
+          })
+          .then((response: any) => response.data);
       }
     },
     context.queryClient
   );
 
-  // Custom form to edit the selected part
-  const editPartForm = context.forms.edit({
-    url: apiUrl(ApiEndpoints.part_list, partId),
-    title: 'Edit Part',
-    preFormContent: (
-      <Alert title='Custom Plugin Form' color='blue'>
-        This is a custom form launched from within a plugin!
-      </Alert>
-    ),
-    fields: {
+  const rateFields: any = useMemo(() => {
+    return {
       name: {},
       description: {},
-      category: {}
-    },
-    successMessage: null,
+      price: {},
+      price_currency: {},
+      units: {}
+    };
+  }, []);
+
+  // Record which is selected in the table
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+
+  // Modal form to create a new rate
+  const createRateForm = context.forms.create({
+    url: apiUrl(RATE_URL),
+    title: 'Add Rate',
+    fields: rateFields,
+    successMessage: 'Rate created',
     onFormSuccess: () => {
-      notifications.show({
-        title: 'Success',
-        message: 'Part updated successfully!',
-        color: 'green'
-      });
+      dataQuery.refetch();
     }
   });
 
-  // Custom callback function example
-  const openForm = useCallback(() => {
-    editPartForm?.open();
-  }, [editPartForm]);
+  // Modal form to edit the selected rate
+  const editRateForm = context.forms.edit({
+    url: apiUrl(RATE_URL, selectedRecord?.pk),
+    title: 'Edit Rate',
+    fields: rateFields,
+    successMessage: 'Rate updated',
+    onFormSuccess: () => {
+      dataQuery.refetch();
+    }
+  });
 
-  // Navigation functionality example
-  const gotoDashboard = useCallback(() => {
-    context.navigate('/home');
-  }, [context]);
+  // Modal form to delete the selected rate
+  const deleteRateForm = context.forms.delete({
+    url: apiUrl(RATE_URL, selectedRecord?.pk),
+    title: 'Delete Rate',
+    successMessage: 'Rate deleted',
+    onFormSuccess: () => {
+      dataQuery.refetch();
+    }
+  });
+
+  // Modal form to duplicate the selected rate
+  const duplicateRateForm = context.forms.create({
+    url: apiUrl(RATE_URL),
+    title: 'Add Rate',
+    fields: rateFields,
+    initialData: {
+      ...selectedRecord
+    },
+    successMessage: 'Rate created',
+    onFormSuccess: () => {
+      dataQuery.refetch();
+    }
+  });
+
+  // Render the actions available for a given row in the table
+  const rowActions = useCallback((record: any) => {
+    return [
+      RowEditAction({
+        onClick: () => {
+          setSelectedRecord(record);
+          editRateForm?.open();
+        }
+      }),
+      RowDuplicateAction({
+        onClick: () => {
+          setSelectedRecord(record);
+          duplicateRateForm?.open();
+        }
+      }),
+      RowDeleteAction({
+        onClick: () => {
+          setSelectedRecord(record);
+          deleteRateForm?.open();
+        }
+      })
+    ];
+  }, []);
+
+  const dataColumns: any[] = useMemo(() => {
+    return [
+      {
+        accessor: 'name',
+        sortable: true
+      },
+      {
+        accessor: 'description'
+      },
+      {
+        accessor: 'price',
+        sortable: true,
+        render: (record: any) => {
+          return (
+            <Group gap='sm'>
+              <Text>
+                {formatCurrencyValue(record.price, {
+                  currency: record.price_currency
+                })}
+              </Text>
+              {record.units && <Text size='sm'>[{record.units}]</Text>}
+            </Group>
+          );
+        }
+      },
+      {
+        accessor: '---',
+        title: ' ',
+        width: 50,
+        resizable: false,
+        sortable: false,
+        render: (record: any, index: number) => (
+          <RowActions actions={rowActions(record)} index={index} />
+        )
+      }
+    ];
+  }, []);
 
   return (
     <>
-      {editPartForm.modal}
+      {createRateForm?.modal}
+      {editRateForm?.modal}
+      {duplicateRateForm?.modal}
+      {deleteRateForm?.modal}
       <Stack gap='xs'>
-        <Title c={context.theme.primaryColor} order={3}>
-          Manufacturing Costs
-        </Title>
-        <Text>This is a custom panel for the ManufacturingCosts plugin.</Text>
-        <Group justify='apart' wrap='nowrap' gap='sm'>
-          <Button color='blue' onClick={gotoDashboard}>
-            Go to Dashboard
-          </Button>
-          {partId && (
-            <Button color='green' onClick={openForm}>
-              Edit Part
-            </Button>
-          )}
-          <Button onClick={() => setCounter(counter + 1)}>
-            Increment Counter
-          </Button>
-          <Text size='xl'>Counter: {counter}</Text>
+        <Alert
+          color='blue'
+          icon={<IconInfoCircle />}
+          title={'Manufacturing Rates'}
+        >
+          Predefined rates for different manufaucturing processes. These can be
+          referenced to assign manufaucturing costs to parts.
+        </Alert>
+        {dataQuery.isError && (
+          <Alert
+            color='red'
+            title='Error Fetching Data'
+            icon={<IconExclamationCircle />}
+          >
+            {dataQuery.error instanceof Error
+              ? dataQuery.error.message
+              : 'An error occurred while fetching data from the server.'}
+          </Alert>
+        )}
+        <Group justify='space-between'>
+          <Group gap='xs'>
+            <AddItemButton
+              tooltip='Add new rate'
+              onClick={() => {
+                createRateForm?.open();
+              }}
+            />
+          </Group>
+          <Group gap='xs'>
+            <SearchInput
+              searchCallback={(value: string) => {
+                setSearchTerm(value);
+              }}
+            />
+            <Tooltip label='Refresh data' position='top-end'>
+              <ActionIcon
+                variant='transparent'
+                onClick={() => {
+                  dataQuery.refetch();
+                }}
+              >
+                <IconRefresh />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
         </Group>
-        {instance ? (
-          <Alert title='Instance Data' color='blue'>
-            {instance}
-          </Alert>
-        ) : (
-          <Alert title='No Instance' color='yellow'>
-            No instance data available
-          </Alert>
-        )}
-        {apiQuery.isFetched && apiQuery.data && (
-          <Alert color='green' title='API Query Data'>
-            {apiQuery.isFetching || apiQuery.isLoading ? (
-              <Text>Loading...</Text>
-            ) : (
-              <Stack gap='xs'>
-                <Text>Part Count: {apiQuery.data.part_count}</Text>
-                <Text>Today: {apiQuery.data.today}</Text>
-                <Text>Random Text: {apiQuery.data.random_text}</Text>
-                <Button
-                  disabled={apiQuery.isFetching || apiQuery.isLoading}
-                  onClick={() => apiQuery.refetch()}
-                >
-                  Reload Data
-                </Button>
-              </Stack>
-            )}
-          </Alert>
-        )}
+        <DataTable
+          withTableBorder
+          withColumnBorders
+          idAccessor={'pk'}
+          noRecordsText='No manufacturing rates found'
+          records={dataQuery.data || []}
+          fetching={dataQuery.isFetching || dataQuery.isLoading}
+          columns={dataColumns}
+          pinLastColumn
+        />
       </Stack>
     </>
   );
@@ -142,6 +239,7 @@ function ManufacturingCostsAdminPanel({
 
 // This is the function which is called by InvenTree to render the actual panel component
 export function renderAdminPanel(context: InvenTreePluginContext) {
-  checkPluginVersion(context);
+  initPlugin(context);
+
   return <ManufacturingCostsAdminPanel context={context} />;
 }

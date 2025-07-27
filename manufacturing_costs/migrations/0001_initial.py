@@ -11,9 +11,7 @@ import djmoney.models.validators
 class Migration(migrations.Migration):
     initial = True
 
-    dependencies = [
-        ("part", "0135_alter_part_link"),
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
@@ -153,6 +151,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         help_text="The manufacturing rate used for this cost",
                         null=True,
+                        blank=True,
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="manufacturing_costs",
                         to="manufacturing_costs.manufacturingrate",
