@@ -2,9 +2,9 @@
 import {
   AddItemButton,
   apiUrl,
+  checkPluginVersion,
   formatCurrencyValue,
   type InvenTreePluginContext,
-  initPlugin,
   RowActions,
   RowDeleteAction,
   RowDuplicateAction,
@@ -239,7 +239,7 @@ export function ManufacturingCostsAdminPanel({
 
 // This is the function which is called by InvenTree to render the actual panel component
 export function renderAdminPanel(context: InvenTreePluginContext) {
-  initPlugin(context);
+  checkPluginVersion(context);
 
   return <ManufacturingCostsAdminPanel context={context} />;
 }
