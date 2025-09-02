@@ -2,12 +2,13 @@
 
 from decimal import Decimal
 
-from django.core.validators import MinValueValidator
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from djmoney.modey import Money
+from djmoney.money import Money
 
+import InvenTree.helpers
 from InvenTree.fields import InvenTreeModelMoneyField
 
 
@@ -62,6 +63,12 @@ class ManufacturingCost(models.Model):
 
         app_label = "manufacturing_costs"
 
+    def save(self, *args, **kwargs):
+        """Custom save method."""
+
+        self.updated = InvenTree.helpers.current_time()
+        super().save(*args, **kwargs)
+
     part = models.ForeignKey(
         "part.Part",
         on_delete=models.CASCADE,
@@ -106,14 +113,22 @@ class ManufacturingCost(models.Model):
         help_text=_("Additional notes about this manufacturing cost"),
     )
 
-    # NOTE: This field is currently not used in the frontend
-    amortization = models.PositiveIntegerField(
-        default=1,
-        verbose_name=_("Amortization Quantity"),
-        help_text=_("Part quantity over which the cost is amortized"),
-        validators=[
-            MinValueValidator(1, _("Amortization quantity must be at least 1"))
-        ],
+    updated = models.DateTimeField(
+        verbose_name=_("Updated"),
+        help_text=_("Timestamp of last update"),
+        default=None,
+        blank=True,
+        null=True,
+    )
+
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="%(class)s_updated",
+        verbose_name=_("Update By"),
+        help_text=_("User who last updated this object"),
     )
 
     def calculate_cost(self, quantity: Decimal) -> Money:
