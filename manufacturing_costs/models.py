@@ -1,8 +1,12 @@
 """Custom model definitions for the ManufacturingCosts plugin."""
 
+from decimal import Decimal
+
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+from djmoney.modey import Money
 
 from InvenTree.fields import InvenTreeModelMoneyField
 
@@ -102,6 +106,7 @@ class ManufacturingCost(models.Model):
         help_text=_("Additional notes about this manufacturing cost"),
     )
 
+    # NOTE: This field is currently not used in the frontend
     amortization = models.PositiveIntegerField(
         default=1,
         verbose_name=_("Amortization Quantity"),
@@ -110,3 +115,18 @@ class ManufacturingCost(models.Model):
             MinValueValidator(1, _("Amortization quantity must be at least 1"))
         ],
     )
+
+    def calculate_cost(self, quantity: Decimal) -> Money:
+        """Calculate the total manufacturing cost for a given quantity.
+
+        - If a 'rate' is specified, use the rate price.
+        - Otherwise, use the 'unit_cost' if specified.
+        """
+
+        if self.rate is not None:
+            return self.rate.price * quantity
+
+        elif self.unit_cost is not None:
+            return self.unit_cost * quantity
+
+        return Money(0, "USD")  # Default to zero cost if neither is specified
