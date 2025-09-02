@@ -223,6 +223,7 @@ export function ManufacturingCostsAdminPanel({
           </Group>
         </Group>
         <DataTable
+          minHeight={250}
           withTableBorder
           withColumnBorders
           idAccessor={'pk'}
