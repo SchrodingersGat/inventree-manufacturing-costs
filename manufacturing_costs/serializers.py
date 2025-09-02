@@ -8,7 +8,9 @@ from InvenTree.serializers import (
     InvenTreeModelSerializer,
     InvenTreeMoneySerializer,
 )
+
 from part.serializers import PartBriefSerializer
+from users.serializers import UserSerializer
 
 from .models import ManufacturingRate, ManufacturingCost
 
@@ -42,6 +44,7 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
         model = ManufacturingCost
         fields = [
             "pk",
+            "description",
             "part",
             "part_detail",
             "rate",
@@ -50,8 +53,12 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
             "unit_cost",
             "unit_cost_currency",
             "notes",
-            "amortization",
+            "updated",
+            "updated_by",
+            "updated_by_detail",
         ]
+
+        read_only_fields = ["updated", "updated_by"]
 
     rate = serializers.PrimaryKeyRelatedField(
         queryset=ManufacturingRate.objects.all(),
@@ -65,3 +72,34 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
     unit_cost_currency = InvenTreeCurrencySerializer()
     part_detail = PartBriefSerializer(source="part", read_only=True, many=False)
     rate_detail = ManufacturingRateSerializer(source="rate", read_only=True, many=False)
+    updated_by_detail = UserSerializer(
+        source="updated_by", many=False, read_only=True, allow_null=True
+    )
+
+    def validate(self, data):
+        """Validate the provided data."""
+
+        data = super().validate(data)
+
+        rate = data.get("rate", None)
+        unit_cost = data.get("unit_cost", None)
+
+        if rate is not None and unit_cost is not None:
+            msg = "Only one of 'rate' or 'unit_cost' should be specified"
+            raise serializers.ValidationError({
+                "rate": msg,
+                "unit_cost": msg,
+            })
+
+        return data
+
+    def save(self):
+        """Save the model instance."""
+
+        instance = super().save()
+
+        if request := self.context.get("request", None):
+            instance.updated_by = request.user
+            instance.save()
+
+        return instance
