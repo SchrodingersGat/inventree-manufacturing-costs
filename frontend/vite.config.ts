@@ -11,8 +11,6 @@ export const externalLibs : Record<string, string> = {
   react: 'React',
   'react-dom': 'ReactDOM',
   'ReactDom': 'ReactDOM',
-  '@lingui/core': 'LinguiCore',
-  '@lingui/react': 'LinguiReact',
   '@mantine/core': 'MantineCore',
   "@mantine/notifications": 'MantineNotifications',
 };
@@ -46,8 +44,7 @@ export default defineConfig({
         './src/PartPanel.tsx',
       ],
       output: {
-        // dir: '../manufacturing_costs/static',
-        dir: 'dist',
+        dir: '../manufacturing_costs/static',
         entryFileNames: '[name].js',
         assetFileNames: 'assets/[name].[ext]',
         globals: externalLibs,

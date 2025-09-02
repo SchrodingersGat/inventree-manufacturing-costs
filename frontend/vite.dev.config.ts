@@ -2,7 +2,6 @@
 import { resolve } from 'node:path';
 import { defineConfig, mergeConfig } from 'vite'
 import { viteExternalsPlugin } from 'vite-plugin-externals'
-
 import viteConfig, { externalLibs } from './vite.config'
 
 /**

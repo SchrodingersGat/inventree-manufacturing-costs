@@ -1,5 +1,8 @@
 """Capture part manufacturing costs"""
 
+from django.contrib.auth.models import Group
+from django.utils.translation import gettext_lazy as _
+
 from plugin import InvenTreePlugin
 
 from plugin.mixins import AppMixin, SettingsMixin, UrlsMixin, UserInterfaceMixin
@@ -28,12 +31,12 @@ class ManufacturingCosts(
 
     # Plugin settings (from SettingsMixin)
     SETTINGS = {
-        # Define your plugin settings here...
-        "CUSTOM_VALUE": {
-            "name": "Custom Value",
-            "description": "A custom value",
-            "validator": int,
-            "default": 42,
+        "USER_GROUP": {
+            "name": _("Allowed Group"),
+            "description": _(
+                "The user group that is allowed to view manufacturing costs"
+            ),
+            "model": "auth.group",
         }
     }
 
@@ -43,7 +46,17 @@ class ManufacturingCosts(
 
         return construct_urls()
 
-    def get_part_panels(self, part_id: int):
+    def is_user_allowed(self, request):
+        """Check if the user is allowed to view manufacturing costs."""
+        if user_group_id := self.get_setting("USER_GROUP", backup_value=None):
+            user_group = Group.objects.filter(id=user_group_id).first()
+
+            if user_group is not None and user_group not in request.user.groups.all():
+                return False
+
+        return True
+
+    def get_part_panels(self, part_id: int, request):
         """Return the custom part panel component for this plugin."""
 
         from part.models import Part
@@ -55,8 +68,6 @@ class ManufacturingCosts(
             instance = Part.objects.get(pk=part_id)
         except (Part.DoesNotExist, ValueError):
             return []
-
-        # TODO: Check if the user has permission to view the manufacturing data
 
         if not instance.assembly:
             # If the part is not an assembly, do not display the panel
@@ -72,7 +83,7 @@ class ManufacturingCosts(
             }
         ]
 
-    def get_admin_panels(self):
+    def get_admin_panels(self, request):
         """Return the custom admin panel component for this plugin."""
 
         return [
@@ -89,15 +100,19 @@ class ManufacturingCosts(
     def get_ui_panels(self, request, context: dict, **kwargs):
         """Return a list of custom panels to be rendered in the InvenTree user interface."""
 
+        # Check if user is allowed to view this plugin
+        if not self.is_user_allowed(request):
+            return []
+
         target_model = context.get("target_model", None)
         target_id = context.get("target_id", None)
 
         if target_model == "admincenter":
-            return self.get_admin_panels()
+            return self.get_admin_panels(request)
 
         if target_model == "part":
             target_id = context.get("target_id", None)
-            return self.get_part_panels(target_id)
+            return self.get_part_panels(target_id, request)
 
         # Nothing to do
         return []

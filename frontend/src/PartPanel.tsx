@@ -3,10 +3,10 @@ import {
   AddItemButton,
   type ApiFormFieldSet,
   apiUrl,
+  checkPluginVersion,
   formatCurrencyValue,
   formatDecimal,
   type InvenTreePluginContext,
-  initPlugin,
   ModelType,
   RowActions,
   RowDeleteAction,
@@ -22,6 +22,15 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { useCallback, useMemo, useState } from 'react';
+
+function RenderRate({ instance }: { instance: any }) {
+  return (
+    <Group gap='xs' justify='space-between'>
+      <Text>{instance.name}</Text>
+      <Text size='sm'>{instance.description}</Text>
+    </Group>
+  );
+}
 
 /**
  * Render a custom panel with the provided context.
@@ -63,15 +72,6 @@ function ManufacturingCostsPanel({
     },
     context.queryClient
   );
-
-  function RenderRate({ instance }: { instance: any }) {
-    return (
-      <Group gap='xs' justify='space-between'>
-        <Text>{instance.name}</Text>
-        <Text size='sm'>{instance.description}</Text>
-      </Group>
-    );
-  }
 
   // Record which is selected in the table
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -273,6 +273,7 @@ function ManufacturingCostsPanel({
           </Group>
         </Group>
         <DataTable
+          minHeight={250}
           withTableBorder
           withColumnBorders
           idAccessor={'pk'}
@@ -290,6 +291,6 @@ function ManufacturingCostsPanel({
 // This is the function which is called by InvenTree to render the actual panel component
 // export function renderPartPanel(component: HTMLDivElement, context: InvenTreePluginContext) {
 export function renderPartPanel(context: InvenTreePluginContext) {
-  initPlugin(context);
+  checkPluginVersion(context);
   return <ManufacturingCostsPanel context={context} />;
 }
