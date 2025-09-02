@@ -151,7 +151,7 @@ export function ManufacturingCostsAdminPanel({
                   currency: record.price_currency
                 })}
               </Text>
-              {record.units && <Text size='sm'>[{record.units}]</Text>}
+              {record.units && <Text size='xs'>[{record.units}]</Text>}
             </Group>
           );
         }
