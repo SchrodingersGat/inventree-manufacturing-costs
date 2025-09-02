@@ -106,6 +106,13 @@ class ManufacturingCost(models.Model):
         help_text=_("Cost of manufacturing this part"),
     )
 
+    description = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name=_("Description"),
+        help_text=_("Description of this manufacturing cost"),
+    )
+
     notes = models.CharField(
         max_length=200,
         blank=True,
