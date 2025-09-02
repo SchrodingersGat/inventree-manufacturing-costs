@@ -13,11 +13,20 @@ import {
   RowEditAction,
   SearchInput
 } from '@inventreedb/ui';
-import { ActionIcon, Alert, Group, Stack, Text, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Alert,
+  Group,
+  HoverCard,
+  Stack,
+  Text,
+  Tooltip
+} from '@mantine/core';
 import {
   IconExclamationCircle,
   IconInfoCircle,
-  IconRefresh
+  IconRefresh,
+  IconUser
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
@@ -27,7 +36,7 @@ function RenderRate({ instance }: { instance: any }) {
   return (
     <Group gap='xs' justify='space-between'>
       <Text>{instance.name}</Text>
-      <Text size='sm'>{instance.description}</Text>
+      <Text size='xs'>{instance.description}</Text>
     </Group>
   );
 }
@@ -82,6 +91,7 @@ function ManufacturingCostsPanel({
         value: partId,
         disabled: true
       },
+      description: {},
       quantity: {},
       rate: {
         api_url: apiUrl(RATE_URL),
@@ -89,7 +99,6 @@ function ManufacturingCostsPanel({
       },
       unit_cost: {},
       unit_cost_currency: {},
-      amortization: {},
       notes: {}
     };
   }, []);
@@ -160,17 +169,8 @@ function ManufacturingCostsPanel({
         title: 'IPN'
       },
       {
-        accessor: 'rate',
-        title: 'Rate',
-        render: (record: any) => {
-          const rate = record.rate_detail;
-
-          if (!rate) {
-            return '-';
-          }
-
-          return <RenderRate instance={rate} />;
-        }
+        accessor: 'description',
+        title: 'Description'
       },
       {
         accessor: 'quantity',
@@ -178,25 +178,71 @@ function ManufacturingCostsPanel({
         format: (value: any) => formatDecimal(value)
       },
       {
-        accessor: 'unit_cost',
-        title: 'Unit Cost',
+        accessor: 'rate',
+        title: 'Rate',
         render: (record: any) => {
+          const rate = record.rate_detail;
+
+          let unit_cost: string | number | null = '';
+
+          if (rate) {
+            unit_cost = formatCurrencyValue(rate.price, {
+              currency: rate.price_currency
+            });
+          } else {
+            unit_cost = formatCurrencyValue(record.unit_cost, {
+              currency: record.unit_cost_currency
+            });
+          }
+
           return (
-            <Group gap='sm'>
-              <Text>
-                {formatCurrencyValue(record.unit_cost, {
-                  currency: record.unit_cost_currency
-                })}
-              </Text>
-              {record.units && <Text size='sm'>[{record.units}]</Text>}
+            <Group justify='space-between' gap='sm'>
+              <Text>{unit_cost}</Text>
+              {rate && (
+                <HoverCard>
+                  <HoverCard.Target>
+                    <ActionIcon variant='transparent' size='sm'>
+                      <IconInfoCircle />
+                    </ActionIcon>
+                  </HoverCard.Target>
+                  <HoverCard.Dropdown>
+                    <RenderRate instance={rate} />
+                  </HoverCard.Dropdown>
+                </HoverCard>
+              )}
             </Group>
           );
-        },
-        sortable: true
+        }
       },
       {
         accessor: 'notes',
         title: 'Notes'
+      },
+      {
+        accessor: 'updated',
+        title: 'Updated',
+        render: (record: any) => {
+          return (
+            <Group justify='space-between'>
+              <Text>{record.updated}</Text>
+              {record.updated_by_detail && (
+                <HoverCard>
+                  <HoverCard.Target>
+                    <ActionIcon variant='transparent' size='sm'>
+                      <IconUser />
+                    </ActionIcon>
+                  </HoverCard.Target>
+                  <HoverCard.Dropdown>
+                    {context.renderInstance({
+                      model: ModelType.user,
+                      instance: record.updated_by_detail
+                    })}
+                  </HoverCard.Dropdown>
+                </HoverCard>
+              )}
+            </Group>
+          );
+        }
       },
       {
         accessor: '---',
