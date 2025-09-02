@@ -50,7 +50,6 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
             "unit_cost",
             "unit_cost_currency",
             "notes",
-            "amortization",
         ]
 
     rate = serializers.PrimaryKeyRelatedField(
@@ -65,3 +64,20 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
     unit_cost_currency = InvenTreeCurrencySerializer()
     part_detail = PartBriefSerializer(source="part", read_only=True, many=False)
     rate_detail = ManufacturingRateSerializer(source="rate", read_only=True, many=False)
+
+    def validate(self, data):
+        """Validate the provided data."""
+
+        data = super().validate(data)
+
+        rate = data.get("rate", None)
+        unit_cost = data.get("unit_cost", None)
+
+        if rate is not None and unit_cost is not None:
+            msg = "Only one of 'rate' or 'unit_cost' should be specified"
+            raise serializers.ValidationError({
+                "rate": msg,
+                "unit_cost": msg,
+            })
+
+        return data

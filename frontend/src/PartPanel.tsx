@@ -153,12 +153,7 @@ function ManufacturingCostsPanel({
       {
         accessor: 'part',
         title: 'Part',
-        render: (record: any) => {
-          return context.renderInstance({
-            instance: record.part_detail,
-            model: ModelType.part
-          });
-        }
+        render: (record: any) => record.part_detail?.full_name
       },
       {
         accessor: 'part_detail.IPN',
@@ -197,11 +192,6 @@ function ManufacturingCostsPanel({
             </Group>
           );
         },
-        sortable: true
-      },
-      {
-        accessor: 'amortization',
-        title: 'Amortization',
         sortable: true
       },
       {
