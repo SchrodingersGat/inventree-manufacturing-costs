@@ -48,4 +48,9 @@ setuptools.setup(
             "ManufacturingCosts = manufacturing_costs.core:ManufacturingCosts"
         ]
     },
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "Operating System :: OS Independent",
+        "Framework :: InvenTree",
+    ],
 )
