@@ -270,6 +270,16 @@ function ManufacturingCostsPanel({
         title: 'Notes'
       },
       {
+        accessor: 'inherited',
+        title: 'Inherited',
+        render: (record: any) => (record.inherited ? 'Yes' : 'No')
+      },
+      {
+        accessor: 'active',
+        title: 'Active',
+        render: (record: any) => (record.active ? 'Yes' : 'No')
+      },
+      {
         accessor: 'updated',
         title: 'Updated',
         render: (record: any) => {
