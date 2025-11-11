@@ -1,14 +1,24 @@
 """API views for the ManufacturingCosts plugin."""
 
+from typing import cast
+
+import tablib
+
 from django.db.models import Q
 from django_filters import rest_framework as rest_filters
 from rest_framework import filters, permissions
+from rest_framework.views import APIView
 
+from InvenTree.helpers import DownloadFile
 from InvenTree.mixins import ListCreateAPI, RetrieveUpdateDestroyAPI
 import part.models
 
 from .models import ManufacturingRate, ManufacturingCost
-from .serializers import ManufacturingRateSerializer, ManufacturingCostSerializer
+from .serializers import (
+    ManufacturingRateSerializer,
+    ManufacturingCostSerializer,
+    AssemblyCostRequestSerializer,
+)
 
 
 class ManufacturingRateMixin:
@@ -110,6 +120,46 @@ class ManufacturingCostDetail(ManufacturingCostMixin, RetrieveUpdateDestroyAPI):
     ...
 
 
+class AssemblyCostExport(APIView):
+    """API endpoint for exporting ManufacturingCost data for a single assembly."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        """Export manufacturing cost data for a given assembly part."""
+
+        serializer = AssemblyCostRequestSerializer(data=request.query_params)
+
+        serializer.is_valid(raise_exception=True)
+        data = cast(dict, serializer.validated_data)
+
+        self.part = data["part"]
+        self.include_subassemblies = data.get("include_subassemblies", True)
+        self.export_format = data.get("export_format", "csv")
+
+        return self.export_data()
+
+    def export_data(self):
+        """Construct a dataset for export."""
+
+        headers = self.file_headers()
+        dataset = tablib.Dataset(headers=map(str, headers))
+
+        # TODO: Implement data population logic here
+
+        data = dataset.export(self.export_format)
+
+        return DownloadFile(
+            data,
+            filename=f"assembly_costs_{self.part.full_name}.{self.export_format}",
+        )
+
+    def file_headers(self):
+        """Return the headers for the exported dataset."""
+
+        return ["Part ID", "IPN", "Part Name"]
+
+
 def construct_urls():
     """Construct the URL patterns for the ManufacturingCosts plugin."""
 
@@ -132,6 +182,11 @@ def construct_urls():
         path(
             "cost/",
             include([
+                path(
+                    "export/",
+                    AssemblyCostExport.as_view(),
+                    name="assembly-cost-export",
+                ),
                 path(
                     "<int:pk>/",
                     ManufacturingCostDetail.as_view(),

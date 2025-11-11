@@ -17,14 +17,17 @@ import {
 import {
   ActionIcon,
   Alert,
+  Button,
   Group,
   HoverCard,
+  Menu,
   Stack,
   Text,
   Tooltip
 } from '@mantine/core';
 import {
   IconExclamationCircle,
+  IconFileDownload,
   IconInfoCircle,
   IconRefresh,
   IconUser
@@ -63,6 +66,29 @@ function ManufacturingCostsPanel({
 
   const RATE_URL: string = '/plugin/manufacturing-costs/rate/';
   const COST_URL: string = '/plugin/manufacturing-costs/cost/';
+  const EXPORT_URL: string = '/plugin/manufacturing-costs/cost/export/';
+
+  // Callback to download the manufacturing cost data
+  const downloadData = useCallback(
+    (exportFormat: string) => {
+      if (!partId) {
+        return;
+      }
+
+      let url = `${apiUrl(EXPORT_URL)}?part=${partId}&export_format=${exportFormat}`;
+
+      if (context.host) {
+        url = `${context.host}${url}`;
+      } else {
+        url = `${window.location.origin}${url}`;
+      }
+
+      // TODO: Support other export options, besides data format
+
+      window.open(url, '_blank');
+    },
+    [partId, context.host, window.location]
+  );
 
   const dataQuery = useQuery(
     {
@@ -332,6 +358,16 @@ function ManufacturingCostsPanel({
                 <IconRefresh />
               </ActionIcon>
             </Tooltip>
+            <Menu>
+              <Menu.Target>
+                <Button leftSection={<IconFileDownload />}>Export</Button>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item onClick={() => downloadData('csv')}>CSV</Menu.Item>
+                <Menu.Item onClick={() => downloadData('xls')}>XLS</Menu.Item>
+                <Menu.Item onClick={() => downloadData('xlsx')}>XLSX</Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
           </Group>
         </Group>
         <DataTable
