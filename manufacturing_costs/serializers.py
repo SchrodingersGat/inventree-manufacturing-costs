@@ -45,6 +45,8 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
         fields = [
             "pk",
             "description",
+            "enabled",
+            "inherited",
             "part",
             "part_detail",
             "rate",
