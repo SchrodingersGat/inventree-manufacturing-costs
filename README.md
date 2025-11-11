@@ -62,3 +62,14 @@ To manage manufacturing rates, navigate to the "Manufacturing Rates" section in 
 Manufacturing costs are associated with specified assemblies. To view or edit manufacturing costs for a specific part, navigate to the part detail page and select the "Manufacturing Costs" tab:
 
 ![Manufacturing Costs](docs/img/manufacturing_costs.png)
+
+Note that this table only displays the manufacturing costs directly associated with the selected assembly. Costs associated with sub-assemblies are not displayed here - however these costs are included when exporting manufacturing costs (see below).
+
+### Exporting Manufacturing Costs
+
+Manufacturing costs can be exported to a CSV file for further analysis or reporting. To export manufacturing costs, click the "Export" button on the "Manufacturing Costs" tab for the desired assembly.
+
+Exporting manufacturing costs will include all costs associated with the selected assembly, as well as manufacturing costs associated with any sub-assemblies.
+
+This information can be used (in association with BOM cost information) to calculate the total cost of manufacturing a given assembly.
+
