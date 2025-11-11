@@ -1,5 +1,6 @@
 """API views for the ManufacturingCosts plugin."""
 
+from django.db.models import Q
 from django_filters import rest_framework as rest_filters
 from rest_framework import filters, permissions
 
@@ -62,7 +63,10 @@ class ManufacturingCostFilter(rest_filters.FilterSet):
 
     class Meta:
         model = ManufacturingCost
-        fields = []
+        fields = [
+            "active",
+            "inherited",
+        ]
 
     part = rest_filters.ModelChoiceFilter(
         queryset=part.models.Part.objects.all(), label="Part", method="filter_part"
@@ -72,7 +76,10 @@ class ManufacturingCostFilter(rest_filters.FilterSet):
         """Filter ManufacturingCost instances by part."""
 
         parts = part.get_ancestors(include_self=True)
-        return queryset.filter(part__in=parts)
+        Q1 = Q(part__in=parts, inherited=True)
+        Q2 = Q(part=part, inherited=False)
+
+        return queryset.filter(Q1 | Q2).distinct()
 
 
 class ManufacturingCostList(ManufacturingCostMixin, ListCreateAPI):
