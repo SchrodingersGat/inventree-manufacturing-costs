@@ -1,5 +1,6 @@
 """API views for the ManufacturingCosts plugin."""
 
+from decimal import Decimal
 from typing import cast
 
 import tablib
@@ -143,11 +144,12 @@ class AssemblyCostExport(APIView):
         """Construct a dataset for export."""
 
         headers = self.file_headers()
-        dataset = tablib.Dataset(headers=map(str, headers))
+        self.dataset = tablib.Dataset(headers=map(str, headers))
 
-        # TODO: Implement data population logic here
+        # Start the processing with the top-level assembly
+        self.process_assembly(self.part)
 
-        data = dataset.export(self.export_format)
+        data = self.dataset.export(self.export_format)
 
         return DownloadFile(
             data,
@@ -157,7 +159,81 @@ class AssemblyCostExport(APIView):
     def file_headers(self):
         """Return the headers for the exported dataset."""
 
-        return ["Part ID", "IPN", "Part Name"]
+        return [
+            "BOM Level",
+            "Quantity Multiplier",
+            "Part ID",
+            "Part IPN",
+            "Part Name",
+            "Rate",
+            "Rate Description",
+            "Cost",
+            "Notes",
+            "Base Quantity",
+            "Total Quantity",
+            "Unit Cost",
+            "Total Cost",
+            "Currency",
+        ]
+
+    def find_costs_for_assembly(self, part):
+        """Find all ManufacturingCost entries for a given assembly part.
+
+        These may be direct costs, or inherited costs from template parts.
+        """
+
+        parents = part.get_ancestors(include_self=True)
+        Q1 = Q(part__in=parents, inherited=True)
+        Q2 = Q(part=part, inherited=False)
+
+        costs = ManufacturingCost.objects.filter(active=True).filter(Q1 | Q2).distinct()
+        costs = costs.prefetch_related("part", "rate")
+
+        return costs
+
+    def process_assembly(self, part, level: int = 1, multiplier: Decimal = Decimal(1)):
+        """Process an assembly part and its sub-assemblies to populate the dataset."""
+
+        base_row_data = [
+            level,
+            multiplier,
+            part.pk,
+            part.IPN,
+            part.name,
+        ]
+
+        costs = self.find_costs_for_assembly(part)
+
+        for cost in costs:
+            unit_cost = cost.calculate_cost(1.0)
+
+            row = [
+                *base_row_data,
+                cost.rate.name if cost.rate else "-",
+                cost.rate.description if cost.rate else "-",
+                cost.description,
+                cost.notes,
+                float(cost.quantity),
+                float(cost.quantity * multiplier),
+                float(unit_cost.amount),
+                float(unit_cost.amount * cost.quantity * multiplier),
+                str(unit_cost.currency),
+            ]
+
+            # Add this row to the dataset
+            self.dataset.append(row)
+
+        # Process sub-assemblies as required
+        if self.include_subassemblies:
+            # Find all subassemblies
+            bom_items = part.get_bom_items().filter(sub_part__assembly=True)
+
+            for bom_item in bom_items:
+                self.process_assembly(
+                    bom_item.sub_part,
+                    level=level + 1,
+                    multiplier=multiplier * bom_item.quantity,
+                )
 
 
 def construct_urls():
