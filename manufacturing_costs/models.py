@@ -69,6 +69,18 @@ class ManufacturingCost(models.Model):
         self.updated = InvenTree.helpers.current_time()
         super().save(*args, **kwargs)
 
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Is this manufacturing cost active?"),
+    )
+
+    inherited = models.BooleanField(
+        default=False,
+        verbose_name=_("Inherited"),
+        help_text=_("Is this manufacturing cost inherited by variant parts?"),
+    )
+
     part = models.ForeignKey(
         "part.Part",
         on_delete=models.CASCADE,

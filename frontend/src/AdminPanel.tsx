@@ -142,6 +142,7 @@ export function ManufacturingCostsAdminPanel({
       },
       {
         accessor: 'price',
+        title: 'Rate',
         sortable: true,
         render: (record: any) => {
           return (

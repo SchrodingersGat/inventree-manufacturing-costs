@@ -10,20 +10,24 @@ import {
   ModelType,
   RowActions,
   RowDeleteAction,
+  RowDuplicateAction,
   RowEditAction,
   SearchInput
 } from '@inventreedb/ui';
 import {
   ActionIcon,
   Alert,
+  Button,
   Group,
   HoverCard,
+  Menu,
   Stack,
   Text,
   Tooltip
 } from '@mantine/core';
 import {
   IconExclamationCircle,
+  IconFileDownload,
   IconInfoCircle,
   IconRefresh,
   IconUser
@@ -36,7 +40,10 @@ function RenderRate({ instance }: { instance: any }) {
   return (
     <Group gap='xs' justify='space-between'>
       <Text>{instance.name}</Text>
-      <Text size='xs'>{instance.description}</Text>
+      <Group gap='xs' justify='right'>
+        <Text size='xs'>{instance.description}</Text>
+        {instance.units && <Text size='xs'>[{instance.units}]</Text>}
+      </Group>
     </Group>
   );
 }
@@ -59,6 +66,29 @@ function ManufacturingCostsPanel({
 
   const RATE_URL: string = '/plugin/manufacturing-costs/rate/';
   const COST_URL: string = '/plugin/manufacturing-costs/cost/';
+  const EXPORT_URL: string = '/plugin/manufacturing-costs/cost/export/';
+
+  // Callback to download the manufacturing cost data
+  const downloadData = useCallback(
+    (exportFormat: string) => {
+      if (!partId) {
+        return;
+      }
+
+      let url = `${apiUrl(EXPORT_URL)}?part=${partId}&export_format=${exportFormat}`;
+
+      if (context.host) {
+        url = `${context.host}${url}`;
+      } else {
+        url = `${window.location.origin}${url}`;
+      }
+
+      // TODO: Support other export options, besides data format
+
+      window.open(url, '_blank');
+    },
+    [partId, context.host, window.location]
+  );
 
   const dataQuery = useQuery(
     {
@@ -93,13 +123,17 @@ function ManufacturingCostsPanel({
       },
       description: {},
       quantity: {},
+      // TODO: Add a "pre-field" element here
       rate: {
         api_url: apiUrl(RATE_URL),
         modelRenderer: RenderRate
       },
+      // TODO: Mark unit_cost and unit_cost currency as "disabled" if a rate is selected
       unit_cost: {},
       unit_cost_currency: {},
-      notes: {}
+      notes: {},
+      inherited: {},
+      active: {}
     };
   }, []);
 
@@ -108,6 +142,17 @@ function ManufacturingCostsPanel({
     title: 'Add Manufacturing Cost',
     fields: costFields,
     successMessage: 'Cost created',
+    onFormSuccess: () => {
+      dataQuery.refetch();
+    }
+  });
+
+  const duplicateCostForm = context.forms.create({
+    url: apiUrl(COST_URL),
+    title: 'Add Manufacturing Cost',
+    fields: costFields,
+    successMessage: 'Cost created',
+    initialData: selectedRecord,
     onFormSuccess: () => {
       dataQuery.refetch();
     }
@@ -144,6 +189,12 @@ function ManufacturingCostsPanel({
             editCostForm?.open();
           },
           hidden: record.part != partPk
+        }),
+        RowDuplicateAction({
+          onClick: () => {
+            setSelectedRecord(record);
+            duplicateCostForm?.open();
+          }
         }),
         RowDeleteAction({
           onClick: () => {
@@ -219,6 +270,16 @@ function ManufacturingCostsPanel({
         title: 'Notes'
       },
       {
+        accessor: 'inherited',
+        title: 'Inherited',
+        render: (record: any) => (record.inherited ? 'Yes' : 'No')
+      },
+      {
+        accessor: 'active',
+        title: 'Active',
+        render: (record: any) => (record.active ? 'Yes' : 'No')
+      },
+      {
         accessor: 'updated',
         title: 'Updated',
         render: (record: any) => {
@@ -226,7 +287,7 @@ function ManufacturingCostsPanel({
             <Group justify='space-between'>
               <Text>{record.updated}</Text>
               {record.updated_by_detail && (
-                <HoverCard>
+                <HoverCard position='bottom-end'>
                   <HoverCard.Target>
                     <ActionIcon variant='transparent' size='sm'>
                       <IconUser />
@@ -260,6 +321,7 @@ function ManufacturingCostsPanel({
   return (
     <>
       {createCostForm.modal}
+      {duplicateCostForm.modal}
       {editCostForm.modal}
       {deleteCostForm.modal}
       <Stack gap='xs'>
@@ -306,6 +368,16 @@ function ManufacturingCostsPanel({
                 <IconRefresh />
               </ActionIcon>
             </Tooltip>
+            <Menu>
+              <Menu.Target>
+                <Button leftSection={<IconFileDownload />}>Export</Button>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item onClick={() => downloadData('csv')}>CSV</Menu.Item>
+                <Menu.Item onClick={() => downloadData('xls')}>XLS</Menu.Item>
+                <Menu.Item onClick={() => downloadData('xlsx')}>XLSX</Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
           </Group>
         </Group>
         <DataTable

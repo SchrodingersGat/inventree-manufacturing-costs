@@ -2,6 +2,7 @@
 
 from rest_framework import serializers
 
+
 from InvenTree.serializers import (
     InvenTreeCurrencySerializer,
     InvenTreeDecimalField,
@@ -9,6 +10,7 @@ from InvenTree.serializers import (
     InvenTreeMoneySerializer,
 )
 
+import part.models as part_models
 from part.serializers import PartBriefSerializer
 from users.serializers import UserSerializer
 
@@ -45,6 +47,8 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
         fields = [
             "pk",
             "description",
+            "active",
+            "inherited",
             "part",
             "part_detail",
             "rate",
@@ -103,3 +107,30 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
             instance.save()
 
         return instance
+
+
+class AssemblyCostRequestSerializer(serializers.Serializer):
+    """Serializer for requesting manufacturing cost data for an assembly."""
+
+    part = serializers.PrimaryKeyRelatedField(
+        queryset=part_models.Part.objects.filter(assembly=True),
+        many=False,
+        required=True,
+        label="Assembly Part",
+        help_text="Select the assembly part for which to retrieve manufacturing costs",
+    )
+
+    include_subassemblies = serializers.BooleanField(
+        required=False,
+        default=True,
+        label="Include Sub-assemblies",
+        help_text="Include manufacturing costs for sub-assemblies",
+    )
+
+    export_format = serializers.ChoiceField(
+        choices=[("csv", "CSV"), ("xls", "XLS"), ("xlsx", "XLSX")],
+        required=False,
+        default="csv",
+        label="Export Format",
+        help_text="Select the format for exporting the manufacturing cost data",
+    )
