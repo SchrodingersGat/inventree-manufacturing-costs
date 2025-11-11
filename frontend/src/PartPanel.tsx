@@ -10,6 +10,7 @@ import {
   ModelType,
   RowActions,
   RowDeleteAction,
+  RowDuplicateAction,
   RowEditAction,
   SearchInput
 } from '@inventreedb/ui';
@@ -36,7 +37,10 @@ function RenderRate({ instance }: { instance: any }) {
   return (
     <Group gap='xs' justify='space-between'>
       <Text>{instance.name}</Text>
-      <Text size='xs'>{instance.description}</Text>
+      <Group gap='xs' justify='right'>
+        <Text size='xs'>{instance.description}</Text>
+        {instance.units && <Text size='xs'>[{instance.units}]</Text>}
+      </Group>
     </Group>
   );
 }
@@ -85,9 +89,7 @@ function ManufacturingCostsPanel({
   // Record which is selected in the table
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
-
   const costFields: ApiFormFieldSet = useMemo(() => {
-
     return {
       part: {
         value: partId,
@@ -105,7 +107,7 @@ function ManufacturingCostsPanel({
       unit_cost_currency: {},
       notes: {},
       inherited: {},
-      active: {},
+      active: {}
     };
   }, []);
 
@@ -114,6 +116,17 @@ function ManufacturingCostsPanel({
     title: 'Add Manufacturing Cost',
     fields: costFields,
     successMessage: 'Cost created',
+    onFormSuccess: () => {
+      dataQuery.refetch();
+    }
+  });
+
+  const duplicateCostForm = context.forms.create({
+    url: apiUrl(COST_URL),
+    title: 'Add Manufacturing Cost',
+    fields: costFields,
+    successMessage: 'Cost created',
+    initialData: selectedRecord,
     onFormSuccess: () => {
       dataQuery.refetch();
     }
@@ -150,6 +163,12 @@ function ManufacturingCostsPanel({
             editCostForm?.open();
           },
           hidden: record.part != partPk
+        }),
+        RowDuplicateAction({
+          onClick: () => {
+            setSelectedRecord(record);
+            duplicateCostForm?.open();
+          }
         }),
         RowDeleteAction({
           onClick: () => {
@@ -232,7 +251,7 @@ function ManufacturingCostsPanel({
             <Group justify='space-between'>
               <Text>{record.updated}</Text>
               {record.updated_by_detail && (
-                <HoverCard>
+                <HoverCard position='bottom-end'>
                   <HoverCard.Target>
                     <ActionIcon variant='transparent' size='sm'>
                       <IconUser />
@@ -266,6 +285,7 @@ function ManufacturingCostsPanel({
   return (
     <>
       {createCostForm.modal}
+      {duplicateCostForm.modal}
       {editCostForm.modal}
       {deleteCostForm.modal}
       <Stack gap='xs'>
