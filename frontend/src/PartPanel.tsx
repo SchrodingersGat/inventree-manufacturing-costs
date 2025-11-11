@@ -85,7 +85,9 @@ function ManufacturingCostsPanel({
   // Record which is selected in the table
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
+
   const costFields: ApiFormFieldSet = useMemo(() => {
+
     return {
       part: {
         value: partId,
@@ -93,13 +95,17 @@ function ManufacturingCostsPanel({
       },
       description: {},
       quantity: {},
+      // TODO: Add a "pre-field" element here
       rate: {
         api_url: apiUrl(RATE_URL),
         modelRenderer: RenderRate
       },
+      // TODO: Mark unit_cost and unit_cost currency as "disabled" if a rate is selected
       unit_cost: {},
       unit_cost_currency: {},
-      notes: {}
+      notes: {},
+      inherited: {},
+      active: {},
     };
   }, []);
 
