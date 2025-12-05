@@ -24,6 +24,11 @@ class ManufacturingRate(models.Model):
         """String representation of the manufacturing rate."""
         return self.name
 
+    @staticmethod
+    def get_api_url():
+        """Return the API URL for this manufacturing rate."""
+        return "/plugin/manufacturing-costs/rate/"
+
     name = models.CharField(
         max_length=100,
         unique=True,
@@ -68,6 +73,11 @@ class ManufacturingCost(models.Model):
 
         self.updated = InvenTree.helpers.current_time()
         super().save(*args, **kwargs)
+
+    @staticmethod
+    def api_url():
+        """Return the API URL for this manufacturing cost."""
+        return "/plugin/manufacturing-costs/cost/"
 
     active = models.BooleanField(
         default=True,

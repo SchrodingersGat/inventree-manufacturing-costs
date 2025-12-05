@@ -25,8 +25,8 @@ from .serializers import (
 class ManufacturingRateMixin:
     """Mixin class for ManufacturingRate API endpoints."""
 
-    # TODO: Fix up the permissions and authentication for this mixin
     permission_classes = [permissions.IsAuthenticated]
+    role_required = "part"
     serializer_class = ManufacturingRateSerializer
     queryset = ManufacturingRate.objects.all()
 
@@ -58,6 +58,7 @@ class ManufacturingCostMixin:
     """Mixin class for ManufacturingCost API endpoints."""
 
     permission_classes = [permissions.IsAuthenticated]
+    role_required = "part"
     serializer_class = ManufacturingCostSerializer
     queryset = ManufacturingCost.objects.all()
 
