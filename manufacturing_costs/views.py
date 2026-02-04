@@ -5,12 +5,13 @@ from typing import cast
 
 import tablib
 
+from django.core.files.base import ContentFile
 from django.db.models import Q
 from django_filters import rest_framework as rest_filters
 from rest_framework import filters, permissions
 from rest_framework.views import APIView
+from rest_framework.response import Response
 
-from InvenTree.helpers import DownloadFile
 from InvenTree.mixins import ListCreateAPI, RetrieveUpdateDestroyAPI
 import part.models
 
@@ -152,10 +153,26 @@ class AssemblyCostExport(APIView):
 
         data = self.dataset.export(self.export_format)
 
-        return DownloadFile(
-            data,
-            filename=f"assembly_costs_{self.part.full_name}.{self.export_format}",
+        # Excel formats expect binary data
+        if self.export_format not in ["xls", "xlsx"]:
+            data = data.encode("utf-8")
+
+        # Create a new DataOutput object associated with this export session
+        from common.models import DataOutput
+        from common.serializers import DataOutputSerializer
+
+        filename = f"assembly_costs_{self.part.full_name}.{self.export_format}"
+
+        output = DataOutput.objects.create(
+            user=self.request.user,
+            output_type="manufacturing_costs",
+            plugin="manufacturing-costs",
+            progress=1,
+            complete=True,
+            output=ContentFile(data, filename),
         )
+
+        return Response(DataOutputSerializer(output).data)
 
     def file_headers(self):
         """Return the headers for the exported dataset."""
