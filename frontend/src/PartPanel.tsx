@@ -20,7 +20,6 @@ import {
   Button,
   Group,
   HoverCard,
-  Menu,
   Stack,
   Text,
   Tooltip
@@ -67,28 +66,6 @@ function ManufacturingCostsPanel({
   const RATE_URL: string = '/plugin/manufacturing-costs/rate/';
   const COST_URL: string = '/plugin/manufacturing-costs/cost/';
   const EXPORT_URL: string = '/plugin/manufacturing-costs/cost/export/';
-
-  // Callback to download the manufacturing cost data
-  const downloadData = useCallback(
-    (exportFormat: string) => {
-      if (!partId) {
-        return;
-      }
-
-      let url = `${apiUrl(EXPORT_URL)}?part=${partId}&export_format=${exportFormat}`;
-
-      if (context.host) {
-        url = `${context.host}${url}`;
-      } else {
-        url = `${window.location.origin}${url}`;
-      }
-
-      // TODO: Support other export options, besides data format
-
-      window.open(url, '_blank');
-    },
-    [partId, context.host, window.location]
-  );
 
   const dataQuery = useQuery(
     {
@@ -174,6 +151,45 @@ function ManufacturingCostsPanel({
     successMessage: 'Cost deleted',
     onFormSuccess: () => {
       dataQuery.refetch();
+    }
+  });
+
+  const exportDataForm = context.forms.create({
+    url: apiUrl(EXPORT_URL),
+    method: 'GET',
+    title: 'Export Manufacturing Costs',
+    fetchInitialData: false,
+    ignorePermissionCheck: true,
+    submitText: 'Export',
+    fields: {
+      part: {
+        field_type: 'integer',
+        value: partId,
+        hidden: true
+      },
+      export_format: {
+        label: 'Export Format',
+        description: 'Select the format for data export',
+        field_type: 'choice',
+        choices: [
+          { display_name: 'CSV', value: 'csv' },
+          { display_name: 'XLS', value: 'xls' },
+          { display_name: 'XLSX', value: 'xlsx' }
+        ],
+        default: 'csv'
+      },
+      include_subassemblies: {
+        field_type: 'boolean',
+        label: 'Include Sub-assemblies',
+        description:
+          'Include manufacturing costs from sub-assemblies for this part',
+        default: true
+      }
+    },
+    onFormSuccess: (data: any) => {
+      if (data.complete && data.output) {
+        window.open(data.output, '_blank');
+      }
     }
   });
 
@@ -324,6 +340,7 @@ function ManufacturingCostsPanel({
       {duplicateCostForm.modal}
       {editCostForm.modal}
       {deleteCostForm.modal}
+      {exportDataForm.modal}
       <Stack gap='xs'>
         <Alert
           color='blue'
@@ -346,7 +363,8 @@ function ManufacturingCostsPanel({
         <Group justify='space-between'>
           <Group gap='xs'>
             <AddItemButton
-              tooltip='Add new rate'
+              tooltip='Add new cost'
+              tooltipAlignment='top-start'
               onClick={() => {
                 createCostForm.open();
               }}
@@ -368,16 +386,12 @@ function ManufacturingCostsPanel({
                 <IconRefresh />
               </ActionIcon>
             </Tooltip>
-            <Menu>
-              <Menu.Target>
-                <Button leftSection={<IconFileDownload />}>Export</Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item onClick={() => downloadData('csv')}>CSV</Menu.Item>
-                <Menu.Item onClick={() => downloadData('xls')}>XLS</Menu.Item>
-                <Menu.Item onClick={() => downloadData('xlsx')}>XLSX</Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
+            <Button
+              leftSection={<IconFileDownload />}
+              onClick={() => exportDataForm.open()}
+            >
+              Export
+            </Button>
           </Group>
         </Group>
         <DataTable
