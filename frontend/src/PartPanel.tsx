@@ -12,7 +12,8 @@ import {
   RowDeleteAction,
   RowDuplicateAction,
   RowEditAction,
-  SearchInput
+  SearchInput,
+  YesNoButton
 } from '@inventreedb/ui';
 import {
   ActionIcon,
@@ -288,12 +289,12 @@ function ManufacturingCostsPanel({
       {
         accessor: 'inherited',
         title: 'Inherited',
-        render: (record: any) => (record.inherited ? 'Yes' : 'No')
+        render: (record: any) => <YesNoButton value={record.inherited} />
       },
       {
         accessor: 'active',
         title: 'Active',
-        render: (record: any) => (record.active ? 'Yes' : 'No')
+        render: (record: any) => <YesNoButton value={record.active} />
       },
       {
         accessor: 'updated',
