@@ -43,12 +43,20 @@ export default defineConfig({
         './src/AdminPanel.tsx',
         './src/PartPanel.tsx',
       ],
-      output: {
-        dir: '../manufacturing_costs/static',
-        entryFileNames: '[name].js',
-        assetFileNames: 'assets/[name].[ext]',
-        globals: externalLibs,
-      },
+      output: [
+        {
+          dir: '../manufacturing_costs/static',
+          entryFileNames: '[name].js',
+          assetFileNames: 'assets/[name].[ext]',
+          globals: externalLibs,
+        },
+        {
+          dir: '../manufacturing_costs/static',
+          entryFileNames: '[name]-[hash].min.js',
+          assetFileNames: 'assets/[name].[ext]',
+          globals: externalLibs,
+        }
+      ],
       external: externalKeys,
     }
   },
