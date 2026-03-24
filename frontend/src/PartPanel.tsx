@@ -34,7 +34,7 @@ import {
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 function RenderRate({ instance }: { instance: any }) {
   return (
@@ -93,6 +93,13 @@ function ManufacturingCostsPanel({
   // Record which is selected in the table
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
+  const [selectedRate, setSelectedRate] = useState<any>(null);
+
+  useEffect(() => {
+    // Update the selected rate whenever the selected record changes
+    setSelectedRate(selectedRecord?.rate || null);
+  }, [selectedRecord]);
+
   const costFields: ApiFormFieldSet = useMemo(() => {
     return {
       part: {
@@ -100,20 +107,36 @@ function ManufacturingCostsPanel({
         disabled: true
       },
       description: {},
-      quantity: {},
-      // TODO: Add a "pre-field" element here
       rate: {
         api_url: apiUrl(RATE_URL),
-        modelRenderer: RenderRate
+        modelRenderer: RenderRate,
+        preFieldContent: (
+          <Alert
+            color='blue'
+            icon={<IconInfoCircle />}
+            title='Manufacturing Rate'
+          >
+            If a rate is selected, the unit cost will be calculated based on the
+            rate price and quantity.
+          </Alert>
+        ),
+        onValueChange(value) {
+          setSelectedRate(value || null);
+        }
       },
-      // TODO: Mark unit_cost and unit_cost currency as "disabled" if a rate is selected
-      unit_cost: {},
-      unit_cost_currency: {},
+      unit_cost: {
+        disabled: !!selectedRate
+      },
+      unit_cost_currency: {
+        disabled: !!selectedRate
+      },
+      quantity: {},
+      amortization: {},
       notes: {},
       inherited: {},
       active: {}
     };
-  }, []);
+  }, [selectedRate]);
 
   const createCostForm = context.forms.create({
     url: apiUrl(COST_URL),
@@ -243,6 +266,20 @@ function ManufacturingCostsPanel({
       {
         accessor: 'quantity',
         title: 'Quantity',
+        render: (record: any) => {
+          return (
+            <Group justify='space-between' gap='sm'>
+              <Text>{formatDecimal(record.quantity)}</Text>
+              {record.rate_detail?.units && (
+                <Text size='xs'>[{record.rate_detail.units}]</Text>
+              )}
+            </Group>
+          );
+        }
+      },
+      {
+        accessor: 'amortization',
+        title: 'Amortization',
         format: (value: any) => formatDecimal(value)
       },
       {
@@ -283,6 +320,24 @@ function ManufacturingCostsPanel({
         }
       },
       {
+        accessor: 'cost',
+        title: 'Unit Cost',
+        render: (record: any) => {
+          // Calculate the actual "unit cost" value, based on the provided information
+          // 1. If a manufacturing rate is provided, calculate the unit cost based on the rate price and quantity
+          // 2. If no rate is provided, use the unit cost value directly from the record
+          const quantity = (record.quantity || 1) / (record.amortization || 1);
+          const price = record.rate_detail?.price || record.unit_cost || 0;
+          const currency =
+            record.rate_detail?.price_currency || record.unit_cost_currency;
+
+          return formatCurrencyValue(price, {
+            currency: currency,
+            multiplier: quantity
+          });
+        }
+      },
+      {
         accessor: 'notes',
         title: 'Notes'
       },
@@ -302,7 +357,7 @@ function ManufacturingCostsPanel({
         render: (record: any) => {
           return (
             <Group justify='space-between'>
-              <Text>{record.updated}</Text>
+              <Text size='sm'>{record.updated}</Text>
               {record.updated_by_detail && (
                 <HoverCard position='bottom-end'>
                   <HoverCard.Target>
