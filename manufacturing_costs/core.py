@@ -69,8 +69,9 @@ class ManufacturingCosts(
         except (Part.DoesNotExist, ValueError):
             return []
 
-        if not instance.assembly:
-            # If the part is not an assembly, do not display the panel
+        # If this part, or any variant parts, are not assemblies, do not display the panel
+        parts = instance.get_descendants(include_self=True)
+        if not parts.filter(assembly=True).exists():
             return []
 
         return [
