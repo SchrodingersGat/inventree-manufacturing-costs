@@ -114,7 +114,7 @@ class ManufacturingCost(models.Model):
         decimal_places=6,
         default=1,
         verbose_name=_("Quantity"),
-        help_text=_("Quantity of the part for which this cost applies"),
+        help_text=_("Quantity multiplier for this manufacturing cost"),
     )
 
     amortization = models.DecimalField(

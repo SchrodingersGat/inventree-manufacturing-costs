@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
                     models.DecimalField(
                         decimal_places=6,
                         default=1,
-                        help_text="Quantity of the part for which this cost applies",
+                        help_text="Quantity multiplier for this manufacturing cost",
                         max_digits=19,
                         verbose_name="Quantity",
                     ),
