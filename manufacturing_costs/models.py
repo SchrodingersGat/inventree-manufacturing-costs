@@ -176,9 +176,14 @@ class ManufacturingCost(models.Model):
         """
 
         if self.rate is not None:
-            return self.rate.price * quantity
-
+            value = self.rate.price * quantity
         elif self.unit_cost is not None:
-            return self.unit_cost * quantity
+            value = self.unit_cost * quantity
+        else:
+            return Money(0, "USD")  # Default to zero cost if neither is specified
 
-        return Money(0, "USD")  # Default to zero cost if neither is specified
+        # Amortize the cost if necessary
+        if self.amortization > 0:
+            value = value / self.amortization
+
+        return value
