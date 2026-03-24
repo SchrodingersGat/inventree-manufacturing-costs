@@ -114,7 +114,15 @@ class ManufacturingCost(models.Model):
         decimal_places=6,
         default=1,
         verbose_name=_("Quantity"),
-        help_text=_("Quantity of the part for which this cost applies"),
+        help_text=_("Quantity multiplier for this manufacturing cost"),
+    )
+
+    amortization = models.DecimalField(
+        max_digits=19,
+        decimal_places=6,
+        default=1,
+        verbose_name=_("Amortization"),
+        help_text=_("How many units is this cost amortized over?"),
     )
 
     # Note: The unit cost will override the rate cost if provided
@@ -168,9 +176,14 @@ class ManufacturingCost(models.Model):
         """
 
         if self.rate is not None:
-            return self.rate.price * quantity
-
+            value = self.rate.price * quantity
         elif self.unit_cost is not None:
-            return self.unit_cost * quantity
+            value = self.unit_cost * quantity
+        else:
+            return Money(0, "USD")  # Default to zero cost if neither is specified
 
-        return Money(0, "USD")  # Default to zero cost if neither is specified
+        # Amortize the cost if necessary
+        if self.amortization > 0:
+            value = value / self.amortization
+
+        return value
