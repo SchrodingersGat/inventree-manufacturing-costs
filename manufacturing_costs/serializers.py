@@ -54,6 +54,7 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
             "rate",
             "rate_detail",
             "quantity",
+            "amortization",
             "unit_cost",
             "unit_cost_currency",
             "notes",
@@ -71,6 +72,7 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
     )
 
     quantity = InvenTreeDecimalField()
+    amortization = InvenTreeDecimalField()
 
     unit_cost = InvenTreeMoneySerializer(allow_null=True)
     unit_cost_currency = InvenTreeCurrencySerializer()

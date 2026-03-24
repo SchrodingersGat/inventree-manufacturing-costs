@@ -117,6 +117,14 @@ class ManufacturingCost(models.Model):
         help_text=_("Quantity of the part for which this cost applies"),
     )
 
+    amortization = models.DecimalField(
+        max_digits=19,
+        decimal_places=6,
+        default=1,
+        verbose_name=_("Amortization"),
+        help_text=_("How many units is this cost amortized over?"),
+    )
+
     # Note: The unit cost will override the rate cost if provided
     unit_cost = InvenTreeModelMoneyField(
         max_digits=19,
