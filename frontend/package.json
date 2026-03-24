@@ -10,14 +10,14 @@
     "dev": "vite --config vite.dev.config.ts --host"
   },
   "dependencies": {
-    "@inventreedb/ui": "latest",
-    "react": ">=19.1.1",
-    "react-dom": ">=19.1.1",
-    "@mantine/charts": ">=7.16.0",
-    "@mantine/dates": ">=7.16.0",
-    "@mantine/hooks": ">=7.16.0",
-    "@mantine/core": ">=7.16.0",
-    "@mantine/notifications": ">=7.16.0"
+    "@inventreedb/ui": ">=0.9.0",
+    "react": ">= 19.1.2",
+    "react-dom": ">= 19.1.2",
+    "@mantine/core": ">= 8.3.10",
+    "@mantine/hooks": ">= 8.3.10",
+    "@mantine/modals": ">= 8.3.10",
+    "@mantine/notifications": ">= 8.3.10",
+    "mantine-datatable": "^7.17.1"
   },
   "peerDependencies": {},
   "devDependencies": {
