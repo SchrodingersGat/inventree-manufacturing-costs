@@ -422,6 +422,7 @@ function ManufacturingCostsPanel({
               tooltip='Add new cost'
               tooltipAlignment='top-start'
               onClick={() => {
+                setSelectedRate(null);
                 createCostForm.open();
               }}
             />
