@@ -94,8 +94,7 @@ class ManufacturingCost(models.Model):
                     )
                 })
 
-            if type(quantity) is Decimal:
-                quantity = float(quantity)
+            quantity = float(quantity.magnitude)
 
             if quantity < 0:
                 raise ValidationError({
@@ -110,11 +109,11 @@ class ManufacturingCost(models.Model):
             })
 
         # Ensure that the quantity is positive
-        if self.quantity < 0:
+        if self.quantity <= 0:
             raise ValidationError(_("Quantity must be a positive value"))
 
         # Ensure that the amortization is positive
-        if self.amortization < 0:
+        if self.amortization <= 0:
             raise ValidationError(_("Amortization must be a positive value"))
 
     @staticmethod
