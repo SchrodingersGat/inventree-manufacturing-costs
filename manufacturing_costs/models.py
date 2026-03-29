@@ -83,16 +83,12 @@ class ManufacturingCost(models.Model):
         units = self.rate.units if self.rate else None
 
         try:
-            quantity = InvenTree.conversion.convert_physical_value(
-                self.amount, units, strip_units=False
-            )
-
-            if not units and not InvenTree.conversion.is_dimensionless(quantity):
-                raise ValidationError({
-                    "amount": _(
-                        "Units cannot be specified for dimensionless quantities"
-                    )
-                })
+            if units:
+                quantity = InvenTree.conversion.convert_physical_value(
+                    self.amount, units, strip_units=False
+                )
+            else:
+                quantity = InvenTree.conversion.convert_value(self.amount, None)
 
             quantity = float(quantity.magnitude)
 
