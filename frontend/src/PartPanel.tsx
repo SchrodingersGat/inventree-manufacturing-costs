@@ -100,6 +100,15 @@ function ManufacturingCostsPanel({
     setSelectedRate(selectedRecord?.rate || null);
   }, [selectedRecord]);
 
+  const processFormData = (data: any) => {
+    // If a 'rate' object is provided, remove the 'unit_cost' field
+    if (data.rate) {
+      data.unit_cost = null;
+    }
+
+    return data;
+  };
+
   const costFields: ApiFormFieldSet = useMemo(() => {
     return {
       part: {
@@ -125,6 +134,9 @@ function ManufacturingCostsPanel({
         }
       },
       unit_cost: {
+        onValueChange(value) {
+          setSelectedRate(null);
+        },
         disabled: !!selectedRate
       },
       unit_cost_currency: {
@@ -145,7 +157,8 @@ function ManufacturingCostsPanel({
     successMessage: 'Cost created',
     onFormSuccess: () => {
       dataQuery.refetch();
-    }
+    },
+    processFormData: processFormData
   });
 
   const duplicateCostForm = context.forms.create({
@@ -156,7 +169,8 @@ function ManufacturingCostsPanel({
     initialData: selectedRecord,
     onFormSuccess: () => {
       dataQuery.refetch();
-    }
+    },
+    processFormData: processFormData
   });
 
   const editCostForm = context.forms.edit({
@@ -166,7 +180,8 @@ function ManufacturingCostsPanel({
     successMessage: 'Cost updated',
     onFormSuccess: () => {
       dataQuery.refetch();
-    }
+    },
+    processFormData: processFormData
   });
 
   const deleteCostForm = context.forms.delete({
