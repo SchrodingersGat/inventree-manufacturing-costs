@@ -1,5 +1,6 @@
 """API serializers for the ManufacturingCosts plugin."""
 
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 
@@ -53,6 +54,7 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
             "part_detail",
             "rate",
             "rate_detail",
+            "amount",
             "quantity",
             "amortization",
             "unit_cost",
@@ -63,12 +65,17 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
             "updated_by_detail",
         ]
 
-        read_only_fields = ["updated", "updated_by"]
+        read_only_fields = ["quantity", "updated", "updated_by"]
 
     rate = serializers.PrimaryKeyRelatedField(
         queryset=ManufacturingRate.objects.all(),
         allow_null=True,
         required=False,
+    )
+
+    amount = serializers.CharField(
+        label=_("Amount"),
+        help_text=_("Base amount for this manufacturing cost"),
     )
 
     quantity = InvenTreeDecimalField()
