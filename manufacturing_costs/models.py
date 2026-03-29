@@ -10,6 +10,7 @@ from djmoney.money import Money
 
 import InvenTree.helpers
 from InvenTree.fields import InvenTreeModelMoneyField
+from InvenTree.validators import validate_physical_units
 
 
 class ManufacturingRate(models.Model):
@@ -42,13 +43,12 @@ class ManufacturingRate(models.Model):
         help_text=_("Description of the manufacturing rate"),
     )
 
-    # TODO: Implement custom validation for the 'units' field
-
     units = models.CharField(
         max_length=50,
         verbose_name=_("Units"),
         blank=True,
         help_text=_("Units for the manufacturing rate"),
+        validators=[validate_physical_units],
     )
 
     price = InvenTreeModelMoneyField(
