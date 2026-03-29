@@ -90,7 +90,10 @@ class ManufacturingCost(models.Model):
             else:
                 quantity = InvenTree.conversion.convert_value(self.amount, None)
 
-            quantity = float(quantity.magnitude)
+            if InvenTree.conversion.is_dimensionless(quantity):
+                quantity = float(quantity)
+            else:
+                quantity = float(quantity.magnitude)
 
             if quantity < 0:
                 raise ValidationError({
