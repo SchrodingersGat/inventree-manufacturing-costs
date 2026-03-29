@@ -100,6 +100,15 @@ function ManufacturingCostsPanel({
     setSelectedRate(selectedRecord?.rate || null);
   }, [selectedRecord]);
 
+  const processFormData = (data: any) => {
+    // If a 'rate' object is provided, remove the 'unit_cost' field
+    if (data.rate) {
+      data.unit_cost = null;
+    }
+
+    return data;
+  };
+
   const costFields: ApiFormFieldSet = useMemo(() => {
     return {
       part: {
@@ -125,12 +134,15 @@ function ManufacturingCostsPanel({
         }
       },
       unit_cost: {
+        onValueChange() {
+          setSelectedRate(null);
+        },
         disabled: !!selectedRate
       },
       unit_cost_currency: {
         disabled: !!selectedRate
       },
-      quantity: {},
+      amount: {},
       amortization: {},
       notes: {},
       inherited: {},
@@ -145,7 +157,8 @@ function ManufacturingCostsPanel({
     successMessage: 'Cost created',
     onFormSuccess: () => {
       dataQuery.refetch();
-    }
+    },
+    processFormData: processFormData
   });
 
   const duplicateCostForm = context.forms.create({
@@ -156,7 +169,8 @@ function ManufacturingCostsPanel({
     initialData: selectedRecord,
     onFormSuccess: () => {
       dataQuery.refetch();
-    }
+    },
+    processFormData: processFormData
   });
 
   const editCostForm = context.forms.edit({
@@ -166,7 +180,8 @@ function ManufacturingCostsPanel({
     successMessage: 'Cost updated',
     onFormSuccess: () => {
       dataQuery.refetch();
-    }
+    },
+    processFormData: processFormData
   });
 
   const deleteCostForm = context.forms.delete({
@@ -266,16 +281,7 @@ function ManufacturingCostsPanel({
       {
         accessor: 'quantity',
         title: 'Quantity',
-        render: (record: any) => {
-          return (
-            <Group justify='space-between' gap='sm'>
-              <Text>{formatDecimal(record.quantity)}</Text>
-              {record.rate_detail?.units && (
-                <Text size='xs'>[{record.rate_detail.units}]</Text>
-              )}
-            </Group>
-          );
-        }
+        render: (record: any) => <Text>{record.amount}</Text>
       },
       {
         accessor: 'amortization',
@@ -326,7 +332,7 @@ function ManufacturingCostsPanel({
           // Calculate the actual "unit cost" value, based on the provided information
           // 1. If a manufacturing rate is provided, calculate the unit cost based on the rate price and quantity
           // 2. If no rate is provided, use the unit cost value directly from the record
-          const quantity = (record.quantity || 1) / (record.amortization || 1);
+          const quantity = (record.quantity || 0) / (record.amortization || 1);
           const price = record.rate_detail?.price || record.unit_cost || 0;
           const currency =
             record.rate_detail?.price_currency || record.unit_cost_currency;

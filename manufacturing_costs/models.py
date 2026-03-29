@@ -2,14 +2,17 @@
 
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from djmoney.money import Money
 
+import InvenTree.conversion
 import InvenTree.helpers
-from InvenTree.fields import InvenTreeModelMoneyField
+from InvenTree.fields import InvenTreeModelMoneyField, RoundingDecimalField
+from InvenTree.validators import validate_physical_units
 
 
 class ManufacturingRate(models.Model):
@@ -42,13 +45,12 @@ class ManufacturingRate(models.Model):
         help_text=_("Description of the manufacturing rate"),
     )
 
-    # TODO: Implement custom validation for the 'units' field
-
     units = models.CharField(
         max_length=50,
         verbose_name=_("Units"),
         blank=True,
         help_text=_("Units for the manufacturing rate"),
+        validators=[validate_physical_units],
     )
 
     price = InvenTreeModelMoneyField(
@@ -73,6 +75,42 @@ class ManufacturingCost(models.Model):
 
         self.updated = InvenTree.helpers.current_time()
         super().save(*args, **kwargs)
+
+    def clean(self):
+        """Custom validation code for the manufacturing cost model."""
+        super().clean()
+
+        units = self.rate.units if self.rate else None
+
+        try:
+            if units:
+                quantity = InvenTree.conversion.convert_physical_value(
+                    self.amount, units, strip_units=False
+                )
+            else:
+                quantity = InvenTree.conversion.convert_value(self.amount, None)
+
+            quantity = float(quantity.magnitude)
+
+            if quantity < 0:
+                raise ValidationError({
+                    "amount": _("Quantity must be a positive value")
+                })
+
+            self.quantity = Decimal(quantity)
+
+        except Exception as exc:
+            raise ValidationError({
+                "amount": str(exc.messages[0]) if hasattr(exc, "messages") else str(exc)
+            })
+
+        # Ensure that the quantity is positive
+        if self.quantity <= 0:
+            raise ValidationError(_("Quantity must be a positive value"))
+
+        # Ensure that the amortization is positive
+        if self.amortization <= 0:
+            raise ValidationError(_("Amortization must be a positive value"))
 
     @staticmethod
     def api_url():
@@ -109,7 +147,15 @@ class ManufacturingCost(models.Model):
         help_text=_("The manufacturing rate used for this cost"),
     )
 
-    quantity = models.DecimalField(
+    # 'Raw' quantity field, which can be supplied with optional units (e.g. '10 hours', '5 kg', etc.)
+    # This *must* match the units specified in the associated manufacturing rate (if provided)
+    amount = models.CharField(
+        max_length=25,
+        verbose_name=_("Amount"),
+        blank=True,
+    )
+
+    quantity = RoundingDecimalField(
         max_digits=19,
         decimal_places=6,
         default=1,
@@ -117,7 +163,7 @@ class ManufacturingCost(models.Model):
         help_text=_("Quantity multiplier for this manufacturing cost"),
     )
 
-    amortization = models.DecimalField(
+    amortization = RoundingDecimalField(
         max_digits=19,
         decimal_places=6,
         default=1,
@@ -167,6 +213,12 @@ class ManufacturingCost(models.Model):
         verbose_name=_("Update By"),
         help_text=_("User who last updated this object"),
     )
+
+    def base_rate_quantity(self, quantity: Decimal) -> Decimal:
+        """Calculate the base quantity for this manufacturing cost, taking into account the base rate."""
+        if self.amortization > 0:
+            return quantity / self.amortization
+        return quantity
 
     def calculate_cost(self, quantity: Decimal) -> Money:
         """Calculate the total manufacturing cost for a given quantity.
