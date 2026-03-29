@@ -134,7 +134,7 @@ function ManufacturingCostsPanel({
         }
       },
       unit_cost: {
-        onValueChange(value) {
+        onValueChange() {
           setSelectedRate(null);
         },
         disabled: !!selectedRate
