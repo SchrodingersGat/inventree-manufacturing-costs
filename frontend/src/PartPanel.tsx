@@ -12,6 +12,7 @@ import {
   RowDeleteAction,
   RowDuplicateAction,
   RowEditAction,
+  RowViewAction,
   SearchInput,
   YesNoButton
 } from '@inventreedb/ui';
@@ -257,6 +258,17 @@ function ManufacturingCostsPanel({
             deleteCostForm?.open();
           },
           hidden: record.part != partPk
+        }),
+        RowViewAction({
+          // onClick: (event: any) => {
+          //   const url = getDetailUrl(ModelType.part, record.part);
+          //   navigateToLink(url, context.navigate, event);
+          // },
+          hidden: record.part == partPk,
+          title: 'View Part',
+          modelType: ModelType.part,
+          modelId: Number.parseInt(record.part) || -1,
+          navigate: context.navigate
         })
       ];
     },
@@ -394,7 +406,7 @@ function ManufacturingCostsPanel({
         )
       }
     ];
-  }, []);
+  }, [dataQuery.data]);
 
   return (
     <>
