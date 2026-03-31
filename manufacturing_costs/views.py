@@ -114,6 +114,7 @@ class ManufacturingCostList(ManufacturingCostMixin, ListCreateAPI):
         "rate__name",
         "rate__description",
         "notes",
+        "description",
     ]
 
 

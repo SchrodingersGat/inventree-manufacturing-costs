@@ -74,6 +74,8 @@ class ManufacturingCost(models.Model):
         """Custom save method."""
 
         self.updated = InvenTree.helpers.current_time()
+
+        self.clean()
         super().save(*args, **kwargs)
 
     def clean(self):
