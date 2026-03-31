@@ -155,7 +155,9 @@ class ManufacturingCost(models.Model):
     amount = models.CharField(
         max_length=25,
         verbose_name=_("Amount"),
-        blank=True,
+        blank=False,
+        null=False,
+        help_text=_("Raw dimensioned quantity for this manufacturing cost"),
     )
 
     quantity = RoundingDecimalField(
