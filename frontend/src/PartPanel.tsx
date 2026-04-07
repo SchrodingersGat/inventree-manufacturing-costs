@@ -1,6 +1,8 @@
 // Import for type checking
 import {
+  ActionButton,
   AddItemButton,
+  ApiEndpoints,
   type ApiFormFieldSet,
   apiUrl,
   checkPluginVersion,
@@ -29,6 +31,7 @@ import {
 import {
   IconExclamationCircle,
   IconFileDownload,
+  IconFileUpload,
   IconInfoCircle,
   IconRefresh,
   IconUser
@@ -194,6 +197,34 @@ function ManufacturingCostsPanel({
     }
   });
 
+  const importCostsForm = context.forms.create({
+    url: apiUrl(ApiEndpoints.import_session_list),
+    title: 'Import Manufacturing Costs',
+    fields: {
+      data_file: {},
+      model_type: {
+        value: 'manufacturingcost',
+        hidden: true
+      },
+      update_records: {},
+      field_overrides: {
+        hidden: true,
+        value: {
+          part: partId || undefined
+        }
+      }
+    },
+    onFormSuccess: (response: any) => {
+      const sessionId = response.pk;
+
+      (context as any).importer?.open(sessionId, {
+        onClose: () => {
+          dataQuery.refetch();
+        }
+      });
+    }
+  });
+
   const exportDataForm = context.forms.create({
     url: apiUrl(EXPORT_URL),
     method: 'GET',
@@ -275,7 +306,7 @@ function ManufacturingCostsPanel({
     [context.instance]
   );
 
-  const tableColums: any[] = useMemo(() => {
+  const tableColumns: any[] = useMemo(() => {
     return [
       {
         accessor: 'part',
@@ -414,6 +445,7 @@ function ManufacturingCostsPanel({
       {duplicateCostForm.modal}
       {editCostForm.modal}
       {deleteCostForm.modal}
+      {importCostsForm.modal}
       {exportDataForm.modal}
       <Stack gap='xs'>
         <Alert
@@ -436,6 +468,14 @@ function ManufacturingCostsPanel({
         )}
         <Group justify='space-between'>
           <Group gap='xs'>
+            <ActionButton
+              tooltip='Import from file'
+              tooltipAlignment='top-start'
+              onClick={() => {
+                importCostsForm.open();
+              }}
+              icon={<IconFileUpload />}
+            />
             <AddItemButton
               tooltip='Add new cost'
               tooltipAlignment='top-start'
@@ -476,7 +516,7 @@ function ManufacturingCostsPanel({
           idAccessor={'pk'}
           noRecordsText='No manufacturing costs found'
           fetching={dataQuery.isFetching || dataQuery.isLoading}
-          columns={tableColums}
+          columns={tableColumns}
           records={dataQuery.data || []}
           pinLastColumn
         />
