@@ -180,12 +180,14 @@ class AssemblyCostExport(APIView):
         """Return the headers for the exported dataset."""
 
         return [
+            "Cost ID",
             "BOM Level",
             "Quantity Multiplier",
             "Part ID",
             "Part IPN",
             "Part Name",
-            "Rate",
+            "Rate ID",
+            "Rate Name",
             "Rate Units",
             "Rate Description",
             "Cost",
@@ -230,7 +232,9 @@ class AssemblyCostExport(APIView):
             unit_cost = cost.calculate_cost(1.0)
 
             row = [
+                cost.pk,
                 *base_row_data,
+                cost.rate.pk if cost.rate else "-",
                 cost.rate.name if cost.rate else "-",
                 cost.rate.units if cost.rate else "-",
                 cost.rate.description if cost.rate else "-",

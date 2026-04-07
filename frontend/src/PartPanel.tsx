@@ -217,9 +217,14 @@ function ManufacturingCostsPanel({
     onFormSuccess: (response: any) => {
       const sessionId = response.pk;
 
-      (context as any).importer?.open(sessionId, {
+      (context as any).importer?.open?.(sessionId, {
         onClose: () => {
           dataQuery.refetch();
+        },
+        fields: {
+          rate: {
+            modelRenderer: RenderRate
+          }
         }
       });
     }

@@ -94,7 +94,7 @@ export function ManufacturingCostsAdminPanel({
     onFormSuccess: (response: any) => {
       const sessionId = response.pk;
 
-      (context as any).importer?.open(sessionId, {
+      context.importer?.open?.(sessionId, {
         onClose: () => {
           dataQuery.refetch();
         }
