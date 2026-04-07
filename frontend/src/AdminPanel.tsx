@@ -1,6 +1,8 @@
 // Import for type checking
 import {
+  ActionButton,
   AddItemButton,
+  ApiEndpoints,
   apiUrl,
   checkPluginVersion,
   formatCurrencyValue,
@@ -16,6 +18,7 @@ import { ActionIcon, Alert, Group, Stack, Text, Tooltip } from '@mantine/core';
 import {
   IconExclamationCircle,
   IconFileDownload,
+  IconFileUpload,
   IconInfoCircle,
   IconRefresh
 } from '@tabler/icons-react';
@@ -76,6 +79,28 @@ export function ManufacturingCostsAdminPanel({
         }
       });
   }, [context.api, searchTerm]);
+
+  const importRatesForm = context.forms.create({
+    url: apiUrl(ApiEndpoints.import_session_list),
+    title: 'Import Manufacturing Rates',
+    fields: {
+      data_file: {},
+      model_type: {
+        value: 'manufacturingrate',
+        hidden: true
+      },
+      update_records: {}
+    },
+    onFormSuccess: (response: any) => {
+      const sessionId = response.pk;
+
+      (context as any).importer?.open(sessionId, {
+        onClose: () => {
+          dataQuery.refetch();
+        }
+      });
+    }
+  });
 
   const rateFields: any = useMemo(() => {
     return {
@@ -205,6 +230,7 @@ export function ManufacturingCostsAdminPanel({
       {editRateForm?.modal}
       {duplicateRateForm?.modal}
       {deleteRateForm?.modal}
+      {importRatesForm?.modal}
       <Stack gap='xs'>
         <Alert
           color='blue'
@@ -227,6 +253,14 @@ export function ManufacturingCostsAdminPanel({
         )}
         <Group justify='space-between'>
           <Group gap='xs'>
+            <ActionButton
+              tooltip='Import from file'
+              tooltipAlignment='top-start'
+              onClick={() => {
+                importRatesForm.open();
+              }}
+              icon={<IconFileUpload />}
+            />
             <AddItemButton
               tooltip='Add new rate'
               onClick={() => {
