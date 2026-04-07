@@ -9,11 +9,13 @@ import {
   RowDeleteAction,
   RowDuplicateAction,
   RowEditAction,
-  SearchInput
+  SearchInput,
+  useMonitorDataOutput
 } from '@inventreedb/ui';
 import { ActionIcon, Alert, Group, Stack, Text, Tooltip } from '@mantine/core';
 import {
   IconExclamationCircle,
+  IconFileDownload,
   IconInfoCircle,
   IconRefresh
 } from '@tabler/icons-react';
@@ -47,6 +49,33 @@ export function ManufacturingCostsAdminPanel({
     },
     context.queryClient
   );
+
+  const [outputId, setOutputId] = useState<number | undefined>(undefined);
+
+  useMonitorDataOutput({
+    api: context.api,
+    queryClient: context.queryClient,
+    id: outputId,
+    title: 'Exporting manufacturing rates'
+  });
+
+  // Use the default exporter to download the manufacturing rates as a CSV file
+  const downloadRates = useCallback(() => {
+    context.api
+      ?.get(apiUrl(RATE_URL), {
+        params: {
+          search: searchTerm,
+          export: true,
+          export_format: 'csv',
+          export_plugin: 'inventree-exporter'
+        }
+      })
+      .then((response) => {
+        if (response.data?.pk) {
+          setOutputId(response.data.pk);
+        }
+      });
+  }, [context.api, searchTerm]);
 
   const rateFields: any = useMemo(() => {
     return {
@@ -219,6 +248,11 @@ export function ManufacturingCostsAdminPanel({
                 }}
               >
                 <IconRefresh />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label='Download data' position='top-end'>
+              <ActionIcon variant='transparent' onClick={downloadRates}>
+                <IconFileDownload />
               </ActionIcon>
             </Tooltip>
           </Group>
