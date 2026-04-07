@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from InvenTree.mixins import ListCreateAPI, RetrieveUpdateDestroyAPI
+from data_exporter.mixins import DataExportViewMixin
 import part.models
 
 from .models import ManufacturingRate, ManufacturingCost
@@ -32,7 +33,7 @@ class ManufacturingRateMixin:
     queryset = ManufacturingRate.objects.all()
 
 
-class ManufacturingRateList(ManufacturingRateMixin, ListCreateAPI):
+class ManufacturingRateList(DataExportViewMixin, ManufacturingRateMixin, ListCreateAPI):
     """API endpoint for listing and creating ManufacturingRate instances."""
 
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
