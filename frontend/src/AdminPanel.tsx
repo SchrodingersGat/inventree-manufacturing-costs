@@ -1,6 +1,8 @@
 // Import for type checking
 import {
+  ActionButton,
   AddItemButton,
+  ApiEndpoints,
   apiUrl,
   checkPluginVersion,
   formatCurrencyValue,
@@ -9,11 +11,14 @@ import {
   RowDeleteAction,
   RowDuplicateAction,
   RowEditAction,
-  SearchInput
+  SearchInput,
+  useMonitorDataOutput
 } from '@inventreedb/ui';
 import { ActionIcon, Alert, Group, Stack, Text, Tooltip } from '@mantine/core';
 import {
   IconExclamationCircle,
+  IconFileDownload,
+  IconFileUpload,
   IconInfoCircle,
   IconRefresh
 } from '@tabler/icons-react';
@@ -47,6 +52,55 @@ export function ManufacturingCostsAdminPanel({
     },
     context.queryClient
   );
+
+  const [outputId, setOutputId] = useState<number | undefined>(undefined);
+
+  useMonitorDataOutput({
+    api: context.api,
+    queryClient: context.queryClient,
+    id: outputId,
+    title: 'Exporting manufacturing rates'
+  });
+
+  // Use the default exporter to download the manufacturing rates as a CSV file
+  const downloadRates = useCallback(() => {
+    context.api
+      ?.get(apiUrl(RATE_URL), {
+        params: {
+          search: searchTerm,
+          export: true,
+          export_format: 'csv',
+          export_plugin: 'inventree-exporter'
+        }
+      })
+      .then((response) => {
+        if (response.data?.pk) {
+          setOutputId(response.data.pk);
+        }
+      });
+  }, [context.api, searchTerm]);
+
+  const importRatesForm = context.forms.create({
+    url: apiUrl(ApiEndpoints.import_session_list),
+    title: 'Import Manufacturing Rates',
+    fields: {
+      data_file: {},
+      model_type: {
+        value: 'manufacturingrate',
+        hidden: true
+      },
+      update_records: {}
+    },
+    onFormSuccess: (response: any) => {
+      const sessionId = response.pk;
+
+      context.importer?.open?.(sessionId, {
+        onClose: () => {
+          dataQuery.refetch();
+        }
+      });
+    }
+  });
 
   const rateFields: any = useMemo(() => {
     return {
@@ -176,6 +230,7 @@ export function ManufacturingCostsAdminPanel({
       {editRateForm?.modal}
       {duplicateRateForm?.modal}
       {deleteRateForm?.modal}
+      {importRatesForm?.modal}
       <Stack gap='xs'>
         <Alert
           color='blue'
@@ -198,6 +253,14 @@ export function ManufacturingCostsAdminPanel({
         )}
         <Group justify='space-between'>
           <Group gap='xs'>
+            <ActionButton
+              tooltip='Import from file'
+              tooltipAlignment='top-start'
+              onClick={() => {
+                importRatesForm.open();
+              }}
+              icon={<IconFileUpload />}
+            />
             <AddItemButton
               tooltip='Add new rate'
               onClick={() => {
@@ -219,6 +282,11 @@ export function ManufacturingCostsAdminPanel({
                 }}
               >
                 <IconRefresh />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label='Download data' position='top-end'>
+              <ActionIcon variant='transparent' onClick={downloadRates}>
+                <IconFileDownload />
               </ActionIcon>
             </Tooltip>
           </Group>

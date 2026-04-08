@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 
+from InvenTree.mixins import DataImportExportSerializerMixin
+
 from InvenTree.serializers import (
     InvenTreeCurrencySerializer,
     InvenTreeDecimalField,
@@ -11,6 +13,8 @@ from InvenTree.serializers import (
     InvenTreeMoneySerializer,
 )
 
+from importer.mixins import DataImportSerializerMixin
+from importer.registry import register_importer
 import part.models as part_models
 from part.serializers import PartBriefSerializer
 from users.serializers import UserSerializer
@@ -18,8 +22,13 @@ from users.serializers import UserSerializer
 from .models import ManufacturingRate, ManufacturingCost
 
 
-class ManufacturingRateSerializer(InvenTreeModelSerializer):
+@register_importer()
+class ManufacturingRateSerializer(
+    DataImportExportSerializerMixin, InvenTreeModelSerializer
+):
     """Serializer for the MachiningRate model."""
+
+    IMPORT_ID_FIELDS = ["name"]
 
     class Meta:
         """Meta options for the serializer."""
@@ -38,7 +47,8 @@ class ManufacturingRateSerializer(InvenTreeModelSerializer):
     price_currency = InvenTreeCurrencySerializer()
 
 
-class ManufacturingCostSerializer(InvenTreeModelSerializer):
+@register_importer()
+class ManufacturingCostSerializer(DataImportSerializerMixin, InvenTreeModelSerializer):
     """Serializer for the ManufacturingCost model."""
 
     class Meta:
@@ -78,7 +88,7 @@ class ManufacturingCostSerializer(InvenTreeModelSerializer):
         help_text=_("Base amount for this manufacturing cost"),
     )
 
-    quantity = InvenTreeDecimalField()
+    quantity = InvenTreeDecimalField(required=False, read_only=True)
     amortization = InvenTreeDecimalField()
 
     unit_cost = InvenTreeMoneySerializer(allow_null=True)

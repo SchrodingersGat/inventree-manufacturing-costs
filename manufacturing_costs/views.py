@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from InvenTree.mixins import ListCreateAPI, RetrieveUpdateDestroyAPI
+from data_exporter.mixins import DataExportViewMixin
 import part.models
 
 from .models import ManufacturingRate, ManufacturingCost
@@ -32,7 +33,7 @@ class ManufacturingRateMixin:
     queryset = ManufacturingRate.objects.all()
 
 
-class ManufacturingRateList(ManufacturingRateMixin, ListCreateAPI):
+class ManufacturingRateList(DataExportViewMixin, ManufacturingRateMixin, ListCreateAPI):
     """API endpoint for listing and creating ManufacturingRate instances."""
 
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
@@ -179,22 +180,27 @@ class AssemblyCostExport(APIView):
         """Return the headers for the exported dataset."""
 
         return [
+            "ID",
             "BOM Level",
             "Quantity Multiplier",
             "Part ID",
             "Part IPN",
             "Part Name",
-            "Rate",
+            "Manufacturing Rate",
+            "Rate Name",
             "Rate Units",
             "Rate Description",
-            "Cost",
-            "Notes",
-            "Base Quantity",
+            "Description",
+            "Amount",
+            "Quantity",
             "Total Quantity",
             "Amortization",
-            "Unit Cost",
+            "Cost",
             "Total Cost",
             "Currency",
+            "Notes",
+            "Inherited",
+            "Active",
         ]
 
     def find_costs_for_assembly(self, part):
@@ -229,18 +235,23 @@ class AssemblyCostExport(APIView):
             unit_cost = cost.calculate_cost(1.0)
 
             row = [
+                cost.pk,
                 *base_row_data,
+                cost.rate.pk if cost.rate else "-",
                 cost.rate.name if cost.rate else "-",
                 cost.rate.units if cost.rate else "-",
                 cost.rate.description if cost.rate else "-",
                 cost.description,
-                cost.notes,
                 cost.amount,
+                float(cost.quantity),
                 float(cost.quantity * multiplier),
                 float(cost.amortization),
                 float(unit_cost.amount),
                 float(unit_cost.amount * cost.quantity * multiplier),
                 str(unit_cost.currency),
+                cost.notes,
+                cost.inherited,
+                cost.active,
             ]
 
             # Add this row to the dataset
