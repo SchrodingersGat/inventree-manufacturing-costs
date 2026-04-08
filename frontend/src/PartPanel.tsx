@@ -41,6 +41,10 @@ import { DataTable } from 'mantine-datatable';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 function RenderRate({ instance }: { instance: any }) {
+  if (!instance) {
+    return '-';
+  }
+
   return (
     <Group gap='xs' justify='space-between'>
       <Text>{instance.name}</Text>
@@ -223,6 +227,7 @@ function ManufacturingCostsPanel({
         },
         fields: {
           rate: {
+            api_url: apiUrl(RATE_URL),
             modelRenderer: RenderRate
           }
         }
