@@ -190,14 +190,16 @@ class AssemblyCostExport(APIView):
             "Rate Name",
             "Rate Units",
             "Rate Description",
-            "Cost",
-            "Notes",
-            "Base Quantity",
+            "Cost Description",
+            "Amount",
             "Total Quantity",
             "Amortization",
             "Unit Cost",
             "Total Cost",
             "Currency",
+            "Notes",
+            "Inherited",
+            "Active",
         ]
 
     def find_costs_for_assembly(self, part):
@@ -239,13 +241,15 @@ class AssemblyCostExport(APIView):
                 cost.rate.units if cost.rate else "-",
                 cost.rate.description if cost.rate else "-",
                 cost.description,
-                cost.notes,
                 cost.amount,
                 float(cost.quantity * multiplier),
                 float(cost.amortization),
                 float(unit_cost.amount),
                 float(unit_cost.amount * cost.quantity * multiplier),
                 str(unit_cost.currency),
+                cost.notes,
+                cost.inherited,
+                cost.active,
             ]
 
             # Add this row to the dataset
