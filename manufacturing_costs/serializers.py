@@ -88,7 +88,7 @@ class ManufacturingCostSerializer(DataImportSerializerMixin, InvenTreeModelSeria
         help_text=_("Base amount for this manufacturing cost"),
     )
 
-    quantity = InvenTreeDecimalField()
+    quantity = InvenTreeDecimalField(required=False, read_only=True)
     amortization = InvenTreeDecimalField()
 
     unit_cost = InvenTreeMoneySerializer(allow_null=True)
