@@ -13,7 +13,7 @@ The following table outlines the compatibility of this plugin with different ver
 
 | Plugin Version | InvenTree Version |
 |----------------|-------------------|
-| 1.0.0          | >= 1.3.1          |
+| >= 1.0.0       | >= 1.3.1          |
 | < 1.0.0        | >= 0.18.0         |
 
 ## Description
