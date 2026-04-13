@@ -27,7 +27,7 @@ class ManufacturingCosts(
     WEBSITE = "https://github.com/SchrodingersGat/inventree-manufacturing-costs"
     LICENSE = "MIT"
 
-    MIN_VERSION = "0.18.0"
+    MIN_VERSION = "1.3.1"
 
     # Plugin settings (from SettingsMixin)
     SETTINGS = {
