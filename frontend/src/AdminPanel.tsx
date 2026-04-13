@@ -7,23 +7,15 @@ import {
   checkPluginVersion,
   formatCurrencyValue,
   type InvenTreePluginContext,
-  RowActions,
+  InvenTreeTable,
   RowDeleteAction,
   RowDuplicateAction,
   RowEditAction,
-  SearchInput,
-  useMonitorDataOutput
+  type TableColumn,
+  useTable
 } from '@inventreedb/ui';
-import { ActionIcon, Alert, Group, Stack, Text, Tooltip } from '@mantine/core';
-import {
-  IconExclamationCircle,
-  IconFileDownload,
-  IconFileUpload,
-  IconInfoCircle,
-  IconRefresh
-} from '@tabler/icons-react';
-import { useQuery } from '@tanstack/react-query';
-import { DataTable } from 'mantine-datatable';
+import { Alert, Group, Stack, Text } from '@mantine/core';
+import { IconFileUpload, IconInfoCircle } from '@tabler/icons-react';
 
 import { useCallback, useMemo, useState } from 'react';
 
@@ -32,53 +24,12 @@ export function ManufacturingCostsAdminPanel({
 }: {
   context: InvenTreePluginContext;
 }) {
-  const [searchTerm, setSearchTerm] = useState<string>('');
-
   const RATE_URL: string = '/plugin/manufacturing-costs/rate/';
 
-  // Fetch manufacturing rates from the API
-  const dataQuery = useQuery(
-    {
-      queryKey: ['manufacturing-rate', searchTerm],
-      queryFn: async () => {
-        return context?.api
-          ?.get(RATE_URL, {
-            params: {
-              search: searchTerm
-            }
-          })
-          .then((response: any) => response.data);
-      }
-    },
-    context.queryClient
-  );
+  const tableState = useTable('manufacturing-rates');
 
-  const [outputId, setOutputId] = useState<number | undefined>(undefined);
-
-  useMonitorDataOutput({
-    api: context.api,
-    queryClient: context.queryClient,
-    id: outputId,
-    title: 'Exporting manufacturing rates'
-  });
-
-  // Use the default exporter to download the manufacturing rates as a CSV file
-  const downloadRates = useCallback(() => {
-    context.api
-      ?.get(apiUrl(RATE_URL), {
-        params: {
-          search: searchTerm,
-          export: true,
-          export_format: 'csv',
-          export_plugin: 'inventree-exporter'
-        }
-      })
-      .then((response) => {
-        if (response.data?.pk) {
-          setOutputId(response.data.pk);
-        }
-      });
-  }, [context.api, searchTerm]);
+  // TODO: Implement custom table filters here
+  // const tableFilters: TableFilter[] = [];
 
   const importRatesForm = context.forms.create({
     url: apiUrl(ApiEndpoints.import_session_list),
@@ -96,7 +47,7 @@ export function ManufacturingCostsAdminPanel({
 
       context.importer?.open?.(sessionId, {
         onClose: () => {
-          dataQuery.refetch();
+          tableState.refreshTable();
         }
       });
     }
@@ -121,9 +72,7 @@ export function ManufacturingCostsAdminPanel({
     title: 'Add Rate',
     fields: rateFields,
     successMessage: 'Rate created',
-    onFormSuccess: () => {
-      dataQuery.refetch();
-    }
+    table: tableState
   });
 
   // Modal form to edit the selected rate
@@ -132,9 +81,7 @@ export function ManufacturingCostsAdminPanel({
     title: 'Edit Rate',
     fields: rateFields,
     successMessage: 'Rate updated',
-    onFormSuccess: () => {
-      dataQuery.refetch();
-    }
+    table: tableState
   });
 
   // Modal form to delete the selected rate
@@ -142,9 +89,7 @@ export function ManufacturingCostsAdminPanel({
     url: apiUrl(RATE_URL, selectedRecord?.pk),
     title: 'Delete Rate',
     successMessage: 'Rate deleted',
-    onFormSuccess: () => {
-      dataQuery.refetch();
-    }
+    table: tableState
   });
 
   // Modal form to duplicate the selected rate
@@ -156,9 +101,7 @@ export function ManufacturingCostsAdminPanel({
       ...selectedRecord
     },
     successMessage: 'Rate created',
-    onFormSuccess: () => {
-      dataQuery.refetch();
-    }
+    table: tableState
   });
 
   // Render the actions available for a given row in the table
@@ -185,19 +128,22 @@ export function ManufacturingCostsAdminPanel({
     ];
   }, []);
 
-  const dataColumns: any[] = useMemo(() => {
+  const dataColumns: TableColumn[] = useMemo(() => {
     return [
       {
         accessor: 'name',
-        sortable: true
+        sortable: true,
+        switchable: false
       },
       {
-        accessor: 'description'
+        accessor: 'description',
+        sortable: false
       },
       {
         accessor: 'price',
         title: 'Rate',
-        sortable: true,
+        sortable: false,
+        switchable: false,
         render: (record: any) => {
           return (
             <Group gap='sm'>
@@ -210,19 +156,29 @@ export function ManufacturingCostsAdminPanel({
             </Group>
           );
         }
-      },
-      {
-        accessor: '---',
-        title: ' ',
-        width: 50,
-        resizable: false,
-        sortable: false,
-        render: (record: any, index: number) => (
-          <RowActions actions={rowActions(record)} index={index} />
-        )
       }
     ];
   }, []);
+
+  const tableActions = useMemo(
+    () => [
+      <ActionButton
+        tooltip='Import from file'
+        tooltipAlignment='top-start'
+        onClick={() => {
+          importRatesForm.open();
+        }}
+        icon={<IconFileUpload />}
+      />,
+      <AddItemButton
+        tooltip='Add new rate'
+        onClick={() => {
+          createRateForm?.open();
+        }}
+      />
+    ],
+    []
+  );
 
   return (
     <>
@@ -237,70 +193,19 @@ export function ManufacturingCostsAdminPanel({
           icon={<IconInfoCircle />}
           title={'Manufacturing Rates'}
         >
-          Predefined rates for different manufaucturing processes. These can be
-          referenced to assign manufaucturing costs to parts.
+          Predefined rates for different manufacturing processes. These can be
+          referenced to assign manufacturing costs to parts.
         </Alert>
-        {dataQuery.isError && (
-          <Alert
-            color='red'
-            title='Error Fetching Data'
-            icon={<IconExclamationCircle />}
-          >
-            {dataQuery.error instanceof Error
-              ? dataQuery.error.message
-              : 'An error occurred while fetching data from the server.'}
-          </Alert>
-        )}
-        <Group justify='space-between'>
-          <Group gap='xs'>
-            <ActionButton
-              tooltip='Import from file'
-              tooltipAlignment='top-start'
-              onClick={() => {
-                importRatesForm.open();
-              }}
-              icon={<IconFileUpload />}
-            />
-            <AddItemButton
-              tooltip='Add new rate'
-              onClick={() => {
-                createRateForm?.open();
-              }}
-            />
-          </Group>
-          <Group gap='xs'>
-            <SearchInput
-              searchCallback={(value: string) => {
-                setSearchTerm(value);
-              }}
-            />
-            <Tooltip label='Refresh data' position='top-end'>
-              <ActionIcon
-                variant='transparent'
-                onClick={() => {
-                  dataQuery.refetch();
-                }}
-              >
-                <IconRefresh />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label='Download data' position='top-end'>
-              <ActionIcon variant='transparent' onClick={downloadRates}>
-                <IconFileDownload />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
-        </Group>
-        <DataTable
-          minHeight={250}
-          withTableBorder
-          withColumnBorders
-          idAccessor={'pk'}
-          noRecordsText='No manufacturing rates found'
-          records={dataQuery.data || []}
-          fetching={dataQuery.isFetching || dataQuery.isLoading}
+        <InvenTreeTable
+          url={RATE_URL}
+          tableState={tableState}
           columns={dataColumns}
-          pinLastColumn
+          props={{
+            enableDownload: true,
+            rowActions: rowActions,
+            tableActions: tableActions
+          }}
+          context={context}
         />
       </Stack>
     </>
