@@ -32,6 +32,14 @@ class ManufacturingRate(models.Model):
         """Return the API URL for this manufacturing rate."""
         return "/plugin/manufacturing-costs/rate/"
 
+    def delete(self, *args, **kwargs):
+        """Custom delete method to prevent deletion if associated costs exist."""
+        if self.manufacturing_costs.exists():
+            raise ValidationError(
+                _("Cannot delete manufacturing rate with associated costs")
+            )
+        super().delete(*args, **kwargs)
+
     name = models.CharField(
         max_length=100,
         unique=True,
