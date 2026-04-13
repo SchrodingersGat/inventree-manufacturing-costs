@@ -9,35 +9,31 @@ import {
   formatCurrencyValue,
   formatDecimal,
   type InvenTreePluginContext,
+  InvenTreeTable,
   ModelType,
-  RowActions,
   RowDeleteAction,
   RowDuplicateAction,
   RowEditAction,
   RowViewAction,
-  SearchInput,
+  type TableColumn,
+  type TableFilter,
+  useTable,
   YesNoButton
 } from '@inventreedb/ui';
 import {
   ActionIcon,
   Alert,
-  Button,
   Group,
   HoverCard,
   Stack,
-  Text,
-  Tooltip
+  Text
 } from '@mantine/core';
 import {
-  IconExclamationCircle,
   IconFileDownload,
   IconFileUpload,
   IconInfoCircle,
-  IconRefresh,
   IconUser
 } from '@tabler/icons-react';
-import { useQuery } from '@tanstack/react-query';
-import { DataTable } from 'mantine-datatable';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 function RenderRate({ instance }: { instance: any }) {
@@ -70,33 +66,24 @@ function ManufacturingCostsPanel({
     return context.model == ModelType.part ? context.id || null : null;
   }, [context.model, context.id]);
 
-  const [searchTerm, setSearchTerm] = useState<string>('');
-
   const RATE_URL: string = '/plugin/manufacturing-costs/rate/';
   const COST_URL: string = '/plugin/manufacturing-costs/cost/';
   const EXPORT_URL: string = '/plugin/manufacturing-costs/cost/export/';
 
-  const dataQuery = useQuery(
-    {
-      queryKey: ['manufacturing-cost', partId, searchTerm],
-      queryFn: async () => {
-        const url = `${COST_URL}`;
+  const tableState = useTable('manufacturing-costs');
 
-        return (
-          context.api
-            ?.get(url, {
-              params: {
-                part: partId,
-                search: searchTerm
-              }
-            })
-            .then((response) => response.data)
-            .catch(() => []) ?? []
-        );
-      }
+  const tableFilters: TableFilter[] = [
+    {
+      name: 'active',
+      label: 'Active',
+      description: 'Show active costs'
     },
-    context.queryClient
-  );
+    {
+      name: 'inherited',
+      label: 'Inherited',
+      description: 'Show inherited costs'
+    }
+  ];
 
   // Record which is selected in the table
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -163,9 +150,7 @@ function ManufacturingCostsPanel({
     title: 'Add Manufacturing Cost',
     fields: costFields,
     successMessage: 'Cost created',
-    onFormSuccess: () => {
-      dataQuery.refetch();
-    },
+    table: tableState,
     processFormData: processFormData
   });
 
@@ -175,9 +160,7 @@ function ManufacturingCostsPanel({
     fields: costFields,
     successMessage: 'Cost created',
     initialData: selectedRecord,
-    onFormSuccess: () => {
-      dataQuery.refetch();
-    },
+    table: tableState,
     processFormData: processFormData
   });
 
@@ -186,9 +169,7 @@ function ManufacturingCostsPanel({
     title: 'Edit Manufacturing Cost',
     fields: costFields,
     successMessage: 'Cost updated',
-    onFormSuccess: () => {
-      dataQuery.refetch();
-    },
+    table: tableState,
     processFormData: processFormData
   });
 
@@ -196,9 +177,7 @@ function ManufacturingCostsPanel({
     url: apiUrl(COST_URL, selectedRecord?.pk),
     title: 'Delete Manufacturing Cost',
     successMessage: 'Cost deleted',
-    onFormSuccess: () => {
-      dataQuery.refetch();
-    }
+    table: tableState
   });
 
   const importCostsForm = context.forms.create({
@@ -223,7 +202,7 @@ function ManufacturingCostsPanel({
 
       (context as any).importer?.open?.(sessionId, {
         onClose: () => {
-          dataQuery.refetch();
+          tableState.refreshTable();
         },
         fields: {
           rate: {
@@ -316,11 +295,12 @@ function ManufacturingCostsPanel({
     [context.instance]
   );
 
-  const tableColumns: any[] = useMemo(() => {
-    return [
+  const tableColumns: TableColumn[] = useMemo(() => {
+    const cols: TableColumn[] = [
       {
         accessor: 'part',
         title: 'Part',
+        switchable: false,
         render: (record: any) => record.part_detail?.full_name
       },
       {
@@ -334,12 +314,13 @@ function ManufacturingCostsPanel({
       {
         accessor: 'quantity',
         title: 'Quantity',
+        switchable: false,
         render: (record: any) => <Text>{record.amount}</Text>
       },
       {
         accessor: 'amortization',
         title: 'Amortization',
-        format: (value: any) => formatDecimal(value)
+        render: (record: any) => formatDecimal(record.amortization)
       },
       {
         accessor: 'rate',
@@ -398,20 +379,24 @@ function ManufacturingCostsPanel({
       },
       {
         accessor: 'notes',
+        switchable: true,
         title: 'Notes'
       },
       {
         accessor: 'inherited',
+        switchable: true,
         title: 'Inherited',
         render: (record: any) => <YesNoButton value={record.inherited} />
       },
       {
         accessor: 'active',
         title: 'Active',
+        switchable: true,
         render: (record: any) => <YesNoButton value={record.active} />
       },
       {
         accessor: 'updated',
+        switchable: true,
         title: 'Updated',
         render: (record: any) => {
           return (
@@ -435,19 +420,38 @@ function ManufacturingCostsPanel({
             </Group>
           );
         }
-      },
-      {
-        accessor: '---',
-        title: ' ',
-        width: 50,
-        resizable: false,
-        sortable: false,
-        render: (record: any, index: number) => (
-          <RowActions actions={rowActions(record)} index={index} />
-        )
       }
     ];
-  }, [dataQuery.data]);
+
+    return cols;
+  }, []);
+
+  const tableActions = useMemo(() => {
+    return [
+      <ActionButton
+        tooltip='Export costs to file'
+        tooltipAlignment='top-start'
+        onClick={() => exportDataForm.open()}
+        icon={<IconFileDownload />}
+      />,
+      <ActionButton
+        tooltip='Import from file'
+        tooltipAlignment='top-start'
+        onClick={() => {
+          importCostsForm.open();
+        }}
+        icon={<IconFileUpload />}
+      />,
+      <AddItemButton
+        tooltip='Add new cost'
+        tooltipAlignment='top-start'
+        onClick={() => {
+          setSelectedRate(null);
+          createCostForm.open();
+        }}
+      />
+    ];
+  }, []);
 
   return (
     <>
@@ -465,70 +469,19 @@ function ManufacturingCostsPanel({
         >
           Additional manufacturing costs associated with this assembly.
         </Alert>
-        {dataQuery.isError && (
-          <Alert
-            color='red'
-            title='Error Fetching Data'
-            icon={<IconExclamationCircle />}
-          >
-            {dataQuery.error instanceof Error
-              ? dataQuery.error.message
-              : 'An error occurred while fetching data from the server.'}
-          </Alert>
-        )}
-        <Group justify='space-between'>
-          <Group gap='xs'>
-            <ActionButton
-              tooltip='Import from file'
-              tooltipAlignment='top-start'
-              onClick={() => {
-                importCostsForm.open();
-              }}
-              icon={<IconFileUpload />}
-            />
-            <AddItemButton
-              tooltip='Add new cost'
-              tooltipAlignment='top-start'
-              onClick={() => {
-                setSelectedRate(null);
-                createCostForm.open();
-              }}
-            />
-          </Group>
-          <Group gap='xs'>
-            <SearchInput
-              searchCallback={(value: string) => {
-                setSearchTerm(value);
-              }}
-            />
-            <Tooltip label='Refresh data' position='top-end'>
-              <ActionIcon
-                variant='transparent'
-                onClick={() => {
-                  dataQuery.refetch();
-                }}
-              >
-                <IconRefresh />
-              </ActionIcon>
-            </Tooltip>
-            <Button
-              leftSection={<IconFileDownload />}
-              onClick={() => exportDataForm.open()}
-            >
-              Export
-            </Button>
-          </Group>
-        </Group>
-        <DataTable
-          minHeight={250}
-          withTableBorder
-          withColumnBorders
-          idAccessor={'pk'}
-          noRecordsText='No manufacturing costs found'
-          fetching={dataQuery.isFetching || dataQuery.isLoading}
+        <InvenTreeTable
+          url={COST_URL}
           columns={tableColumns}
-          records={dataQuery.data || []}
-          pinLastColumn
+          tableState={tableState}
+          props={{
+            params: {
+              part: partId
+            },
+            rowActions: rowActions,
+            tableActions: tableActions,
+            tableFilters: tableFilters
+          }}
+          context={context}
         />
       </Stack>
     </>

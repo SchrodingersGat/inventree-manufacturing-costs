@@ -7,6 +7,15 @@
 
 An [InvenTree](https://inventree.org) plugin for capturing and managing manufacturing costs.
 
+## Compatibility
+
+The following table outlines the compatibility of this plugin with different versions of InvenTree:
+
+| Plugin Version | InvenTree Version |
+|----------------|-------------------|
+| >= 1.0.0       | >= 1.3.1          |
+| < 1.0.0        | >= 0.18.0         |
+
 ## Description
 
 InvenTree provides tracking of raw material costs via Bills of Materials (BOMs). However, there are a number of additional costs associated with manufacturing a part which are not captured in the BOM structure. This plugin provides a framework for capturing and managing these additional costs, which may include:
