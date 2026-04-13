@@ -300,6 +300,7 @@ function ManufacturingCostsPanel({
       {
         accessor: 'part',
         title: 'Part',
+        switchable: false,
         render: (record: any) => record.part_detail?.full_name
       },
       {
@@ -313,12 +314,13 @@ function ManufacturingCostsPanel({
       {
         accessor: 'quantity',
         title: 'Quantity',
+        switchable: false,
         render: (record: any) => <Text>{record.amount}</Text>
       },
       {
         accessor: 'amortization',
         title: 'Amortization',
-        render: (value: any) => formatDecimal(value)
+        render: (record: any) => formatDecimal(record.amortization)
       },
       {
         accessor: 'rate',
