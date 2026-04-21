@@ -100,7 +100,7 @@ export default function CostTable({
     return {
       part: {
         value: partId,
-        disabled: true
+        disabled: !!partId
       },
       description: {},
       rate: {
@@ -135,7 +135,7 @@ export default function CostTable({
       inherited: {},
       active: {}
     };
-  }, [selectedRate]);
+  }, [partId, selectedRate]);
 
   const createCostForm = context.forms.create({
     url: apiUrl(COST_URL),
@@ -248,15 +248,13 @@ export default function CostTable({
   // Render the actions available for a given row in the table
   const rowActions = useCallback(
     (record: any) => {
-      const partPk = context.instance.pk;
-
       return [
         RowEditAction({
           onClick: () => {
             setSelectedRecord(record);
             editCostForm?.open();
           },
-          hidden: record.part != partPk
+          hidden: !!partId && record.part != partId
         }),
         RowDuplicateAction({
           onClick: () => {
@@ -269,14 +267,10 @@ export default function CostTable({
             setSelectedRecord(record);
             deleteCostForm?.open();
           },
-          hidden: record.part != partPk
+          hidden: !!partId && record.part != partId
         }),
         RowViewAction({
-          // onClick: (event: any) => {
-          //   const url = getDetailUrl(ModelType.part, record.part);
-          //   navigateToLink(url, context.navigate, event);
-          // },
-          hidden: record.part == partPk,
+          hidden: !!partId && record.part != partId,
           title: 'View Part',
           modelType: ModelType.part,
           modelId: Number.parseInt(record.part) || -1,
@@ -284,7 +278,7 @@ export default function CostTable({
         })
       ];
     },
-    [context.instance]
+    [partId, context.instance]
   );
 
   const tableColumns: TableColumn[] = useMemo(() => {
@@ -454,13 +448,15 @@ export default function CostTable({
       {importCostsForm.modal}
       {exportDataForm.modal}
       <Stack gap='xs'>
-        <Alert
-          color='blue'
-          icon={<IconInfoCircle />}
-          title={'Manufacturing Costs'}
-        >
-          Additional manufacturing costs associated with this assembly.
-        </Alert>
+        {partId && (
+          <Alert
+            color='blue'
+            icon={<IconInfoCircle />}
+            title={'Manufacturing Costs'}
+          >
+            Additional manufacturing costs associated with this assembly.
+          </Alert>
+        )}
         <InvenTreeTable
           url={COST_URL}
           columns={tableColumns}
