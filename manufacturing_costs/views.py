@@ -80,6 +80,7 @@ class ManufacturingCostFilter(rest_filters.FilterSet):
         fields = [
             "active",
             "inherited",
+            "rate",
         ]
 
     part = rest_filters.ModelChoiceFilter(

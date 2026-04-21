@@ -33,6 +33,7 @@ import {
   IconInfoCircle,
   IconUser
 } from '@tabler/icons-react';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 function RenderRate({ instance }: { instance: any }) {
@@ -64,18 +65,48 @@ export default function CostTable({
 
   const tableState = useTable('manufacturing-costs');
 
-  const tableFilters: TableFilter[] = [
+  const rates = useQuery(
     {
-      name: 'active',
-      label: 'Active',
-      description: 'Show active costs'
+      queryKey: ['manufacturing-rates', partId],
+      queryFn: async () => {
+        // Return a list of all manufacturing rates
+        return context.api.get(RATE_URL).then((response: any) => {
+          return response.data.map((rate: any) => {
+            return {
+              value: `${rate.pk}`,
+              label: rate.name,
+              ...rate
+            };
+          });
+        });
+      }
     },
-    {
-      name: 'inherited',
-      label: 'Inherited',
-      description: 'Show inherited costs'
-    }
-  ];
+    context.queryClient
+  );
+
+  const tableFilters: TableFilter[] = useMemo(
+    () => [
+      {
+        name: 'active',
+        label: 'Active',
+        description: 'Show active costs'
+      },
+      {
+        name: 'inherited',
+        label: 'Inherited',
+        description: 'Show inherited costs'
+      },
+      {
+        name: 'rate',
+        label: 'Rate',
+        description: 'Filter costs by manufacturing rate',
+        type: 'choice',
+        choices: rates.data || [],
+        active: rates.isFetched && rates.isSuccess
+      }
+    ],
+    [rates]
+  );
 
   // Record which is selected in the table
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
