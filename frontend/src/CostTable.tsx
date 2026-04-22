@@ -131,7 +131,10 @@ export default function CostTable({
     return {
       part: {
         value: partId,
-        disabled: !!partId
+        disabled: !!partId,
+        filters: {
+          assembly: true
+        }
       },
       description: {},
       rate: {

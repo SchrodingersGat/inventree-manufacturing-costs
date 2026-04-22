@@ -132,7 +132,7 @@ class AssemblyCostRequestSerializer(serializers.Serializer):
     """Serializer for requesting manufacturing cost data for an assembly."""
 
     part = serializers.PrimaryKeyRelatedField(
-        queryset=part_models.Part.objects.filter(assembly=True),
+        queryset=part_models.Part.objects.all(),
         many=False,
         required=True,
         label="Assembly Part",
