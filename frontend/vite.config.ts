@@ -42,6 +42,8 @@ export default defineConfig({
       input: [
         './src/AdminPanel.tsx',
         './src/PartPanel.tsx',
+        './src/CostTable.tsx',
+        './src/RateTable.tsx',
       ],
       output: [
         {
