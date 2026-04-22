@@ -450,6 +450,7 @@ export default function CostTable({
         tooltipAlignment='top-start'
         onClick={() => exportDataForm.open()}
         icon={<IconFileDownload />}
+        disabled={!partId}
       />,
       <ActionButton
         tooltip='Import from file'
@@ -468,7 +469,7 @@ export default function CostTable({
         }}
       />
     ];
-  }, []);
+  }, [partId]);
 
   return (
     <>
