@@ -7,7 +7,7 @@ from plugin import InvenTreePlugin
 
 from plugin.mixins import AppMixin, SettingsMixin, UrlsMixin, UserInterfaceMixin
 
-from . import PLUGIN_VERSION
+from . import PLUGIN_VERSION, PLUGIN_SLUG
 
 
 class ManufacturingCosts(
@@ -18,9 +18,9 @@ class ManufacturingCosts(
     # Plugin metadata
     TITLE = "Manufacturing Costs"
     NAME = "ManufacturingCosts"
-    SLUG = "manufacturing-costs"
     DESCRIPTION = "Capture part manufacturing costs"
     VERSION = PLUGIN_VERSION
+    SLUG = PLUGIN_SLUG
 
     # Additional project information
     AUTHOR = "Oliver Walters"
