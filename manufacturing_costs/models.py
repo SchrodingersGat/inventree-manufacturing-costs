@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.db import models
@@ -15,7 +16,38 @@ from InvenTree.fields import InvenTreeModelMoneyField, RoundingDecimalField
 from InvenTree.validators import validate_physical_units
 
 
-class ManufacturingRate(models.Model):
+class PluginPermissionMixin:
+    """Mixin class to provide custom permission checks for plugin-defined models."""
+
+    @classmethod
+    def check_user_permission(cls, user: User, permission: str) -> bool:
+        """Custom permission check method for plugin-defined models."""
+
+        from plugin.registry import registry
+        from . import PLUGIN_SLUG
+
+        plugin = registry.get_plugin(PLUGIN_SLUG)
+
+        if not plugin:
+            return False
+
+        group_id = plugin.get_setting("USER_GROUP")
+
+        try:
+            group = Group.objects.get(id=group_id) if group_id else None
+        except (ValueError, Group.DoesNotExist):
+            # Group does not exist, allow access to any user
+            return True
+
+        if not group:
+            # Group does not exist, allow access to any user
+            return True
+
+        # Check if the user belongs to the specified group
+        return group in user.groups.all()
+
+
+class ManufacturingRate(PluginPermissionMixin, models.Model):
     """Model to store manufacturing 'rates' for different processes."""
 
     class Meta:
@@ -70,7 +102,7 @@ class ManufacturingRate(models.Model):
     )
 
 
-class ManufacturingCost(models.Model):
+class ManufacturingCost(PluginPermissionMixin, models.Model):
     """Model to store manufacturing costs associated with a part."""
 
     class Meta:
