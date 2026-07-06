@@ -128,12 +128,14 @@ export default function CostTable({
   };
 
   const costFields: ApiFormFieldSet = useMemo(() => {
+    const isSuperUser = context?.user?.isSuperuser?.() ?? false;
+
     return {
       part: {
         value: partId,
-        disabled: !!partId,
         filters: {
-          assembly: true
+          assembly: true,
+          disabled: !isSuperUser
         }
       },
       description: {},
@@ -169,7 +171,7 @@ export default function CostTable({
       inherited: {},
       active: {}
     };
-  }, [partId, selectedRate]);
+  }, [context.user, partId, selectedRate]);
 
   const createCostForm = context.forms.create({
     url: apiUrl(COST_URL),
