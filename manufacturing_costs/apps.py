@@ -10,4 +10,3 @@ class ManufacturingCostsConfig(AppConfig):
 
     def ready(self):
         """This function is called whenever the ManufacturingCosts plugin is loaded."""
-        ...

@@ -2,12 +2,10 @@
 
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
-
 from plugin import InvenTreePlugin
-
 from plugin.mixins import AppMixin, SettingsMixin, UrlsMixin, UserInterfaceMixin
 
-from . import PLUGIN_VERSION, PLUGIN_SLUG
+from . import PLUGIN_SLUG, PLUGIN_VERSION
 
 
 class ManufacturingCosts(

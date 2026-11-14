@@ -2,16 +2,13 @@
 
 from decimal import Decimal
 
-from django.contrib.auth.models import Group
-from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-
-from djmoney.money import Money
-
 import InvenTree.conversion
 import InvenTree.helpers
+from django.contrib.auth.models import Group, User
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+from djmoney.money import Money
 from InvenTree.fields import InvenTreeModelMoneyField, RoundingDecimalField
 from InvenTree.validators import validate_physical_units
 
@@ -24,6 +21,7 @@ class PluginPermissionMixin:
         """Custom permission check method for plugin-defined models."""
 
         from plugin import registry
+
         from . import PLUGIN_SLUG
 
         plugin = registry.get_plugin(PLUGIN_SLUG)
