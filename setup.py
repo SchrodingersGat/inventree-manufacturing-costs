@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import importlib
 import importlib.util
 import os
+
 import setuptools
 
 """This file is used to package the ManufacturingCosts plugin.

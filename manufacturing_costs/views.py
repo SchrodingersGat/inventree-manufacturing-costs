@@ -3,24 +3,22 @@
 from decimal import Decimal
 from typing import cast
 
+import part.models
 import tablib
-
+from data_exporter.mixins import DataExportViewMixin
 from django.core.files.base import ContentFile
 from django.db.models import Q
 from django_filters import rest_framework as rest_filters
-from rest_framework import filters, permissions
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
 from InvenTree.mixins import ListCreateAPI, RetrieveUpdateDestroyAPI
-from data_exporter.mixins import DataExportViewMixin
-import part.models
+from rest_framework import filters, permissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import ManufacturingRate, ManufacturingCost
+from .models import ManufacturingCost, ManufacturingRate
 from .serializers import (
-    ManufacturingRateSerializer,
-    ManufacturingCostSerializer,
     AssemblyCostRequestSerializer,
+    ManufacturingCostSerializer,
+    ManufacturingRateSerializer,
 )
 
 
@@ -52,8 +50,6 @@ class ManufacturingRateList(DataExportViewMixin, ManufacturingRateMixin, ListCre
 
 class ManufacturingRateDetail(ManufacturingRateMixin, RetrieveUpdateDestroyAPI):
     """API endpoint for retrieving, updating, and deleting a ManufacturingRate instance."""
-
-    ...
 
 
 class ManufacturingCostMixin:
@@ -122,8 +118,6 @@ class ManufacturingCostList(ManufacturingCostMixin, ListCreateAPI):
 
 class ManufacturingCostDetail(ManufacturingCostMixin, RetrieveUpdateDestroyAPI):
     """API endpoint for retrieving, updating, and deleting a ManufacturingCost instance."""
-
-    ...
 
 
 class AssemblyCostExport(APIView):
@@ -278,7 +272,7 @@ class AssemblyCostExport(APIView):
 def construct_urls():
     """Construct the URL patterns for the ManufacturingCosts plugin."""
 
-    from django.urls import path, include
+    from django.urls import include, path
 
     return [
         path(
@@ -290,7 +284,9 @@ def construct_urls():
                     name="manufacturing-rate-detail",
                 ),
                 path(
-                    "", ManufacturingRateList.as_view(), name="manufacturing-rate-list"
+                    "",
+                    ManufacturingRateList.as_view(),
+                    name="manufacturing-rate-list",
                 ),
             ]),
         ),
@@ -308,7 +304,9 @@ def construct_urls():
                     name="manufacturing-cost-detail",
                 ),
                 path(
-                    "", ManufacturingCostList.as_view(), name="manufacturing-cost-list"
+                    "",
+                    ManufacturingCostList.as_view(),
+                    name="manufacturing-cost-list",
                 ),
             ]),
         ),

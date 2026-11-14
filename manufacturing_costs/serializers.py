@@ -1,25 +1,21 @@
 """API serializers for the ManufacturingCosts plugin."""
 
+import part.models as part_models
 from django.utils.translation import gettext_lazy as _
-from rest_framework import serializers
-
-
+from importer.mixins import DataImportSerializerMixin
+from importer.registry import register_importer
 from InvenTree.mixins import DataImportExportSerializerMixin
-
 from InvenTree.serializers import (
     InvenTreeCurrencySerializer,
     InvenTreeDecimalField,
     InvenTreeModelSerializer,
     InvenTreeMoneySerializer,
 )
-
-from importer.mixins import DataImportSerializerMixin
-from importer.registry import register_importer
-import part.models as part_models
 from part.serializers import PartBriefSerializer
+from rest_framework import serializers
 from users.serializers import UserSerializer
 
-from .models import ManufacturingRate, ManufacturingCost
+from .models import ManufacturingCost, ManufacturingRate
 
 
 @register_importer()

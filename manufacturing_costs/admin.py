@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-from .models import ManufacturingRate, ManufacturingCost
+from .models import ManufacturingCost, ManufacturingRate
 
 
 @admin.register(ManufacturingRate)

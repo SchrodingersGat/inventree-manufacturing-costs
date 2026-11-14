@@ -2,7 +2,6 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-
 [tool.ruff]
 exclude = [
     ".git",
@@ -16,3 +15,14 @@ exclude = [
 ]
 
 src=["manufacturing_costs"]
+
+[tool.ruff.lint]
+ignore = [
+    # RUF012 - Mutable default value for class attribute.
+    # Flags idiomatic Django/DRF patterns (permission_classes, Meta.fields, plugin
+    # SETTINGS dicts) that are never mutated per-instance. Also ignored in the main
+    # InvenTree repo's ruff config for the same reason.
+    "RUF012",
+    "BLE001",
+]
+
