@@ -23,7 +23,7 @@ class PluginPermissionMixin:
     def check_user_permission(cls, user: User, permission: str) -> bool:
         """Custom permission check method for plugin-defined models."""
 
-        from plugin.registry import registry
+        from plugin import registry
         from . import PLUGIN_SLUG
 
         plugin = registry.get_plugin(PLUGIN_SLUG)
