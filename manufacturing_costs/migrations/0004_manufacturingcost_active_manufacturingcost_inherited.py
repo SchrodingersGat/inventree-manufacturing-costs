@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("manufacturing_costs", "0003_manufacturingcost_description"),
     ]

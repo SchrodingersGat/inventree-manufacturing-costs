@@ -290,7 +290,9 @@ def construct_urls():
                     name="manufacturing-rate-detail",
                 ),
                 path(
-                    "", ManufacturingRateList.as_view(), name="manufacturing-rate-list"
+                    "",
+                    ManufacturingRateList.as_view(),
+                    name="manufacturing-rate-list",
                 ),
             ]),
         ),
@@ -308,7 +310,9 @@ def construct_urls():
                     name="manufacturing-cost-detail",
                 ),
                 path(
-                    "", ManufacturingCostList.as_view(), name="manufacturing-cost-list"
+                    "",
+                    ManufacturingCostList.as_view(),
+                    name="manufacturing-cost-list",
                 ),
             ]),
         ),
